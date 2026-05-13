@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Demo IA Inmobiliaria — Emporium IA</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f1923; min-height: 100vh; color: #2a2a2a; }
+
+  /* ── HERO ── */
+  .hero { background: linear-gradient(135deg, #0d1f2d 0%, #163247 100%); padding: 48px 20px 40px; text-align: center; }
+  .badge { display: inline-block; background: rgba(255,183,77,.14); border: 1px solid rgba(255,183,77,.35); color: #ffb74d; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; padding: 6px 16px; border-radius: 999px; margin-bottom: 20px; }
+  .hero h1 { font-family: Georgia, serif; font-size: clamp(26px,5vw,42px); color: #fff; font-weight: 400; line-height: 1.1; margin-bottom: 14px; }
+  .hero h1 span { color: #ffb74d; }
+  .hero p { font-size: 15px; color: rgba(255,255,255,.64); line-height: 1.65; max-width: 540px; margin: 0 auto 28px; }
+  .kpi-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 0; }
+  .kpi { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 14px 18px; min-width: 100px; text-align: center; }
+  .kpi-val { font-size: 22px; color: #ffb74d; font-weight: 800; display: block; }
+  .kpi-lbl { font-size: 11px; color: rgba(255,255,255,.5); margin-top: 4px; display: block; }
+
+  /* ── LAYOUT ── */
+  .shell { max-width: 820px; margin: 0 auto; padding: 32px 16px 60px; }
+  .section-label { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #8a8070; margin-bottom: 10px; }
+  .card { background: #fff; border-radius: 16px; border: 1px solid #E8E3DA; padding: 24px; margin-bottom: 12px; }
+  .card-dark { background: #0d1f2d; border-radius: 16px; padding: 28px; margin-bottom: 12px; }
+
+  /* ── STEPPER ── */
+  .stepper { display: flex; justify-content: space-between; margin: 0 0 28px; position: relative; }
+  .stepper::before { content: ''; position: absolute; top: 14px; left: 10%; right: 10%; height: 2px; background: #E8E3DA; z-index: 0; }
+  .step { display: flex; flex-direction: column; align-items: center; gap: 6px; z-index: 1; flex: 1; }
+  .step-dot { width: 28px; height: 28px; border-radius: 50%; background: #E8E3DA; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: #b0a898; transition: all .3s; }
+  .step-dot.active { background: #ffb74d; color: #0d1f2d; box-shadow: 0 0 0 4px rgba(255,183,77,.25); }
+  .step-dot.done { background: #22c55e; color: #fff; }
+  .step-lbl { font-size: 10px; color: #b0a898; text-align: center; font-weight: 600; letter-spacing: .04em; }
+  .step-lbl.active { color: #ffb74d; }
+  .step-lbl.done { color: #22c55e; }
+
+  /* ── CHAT ── */
+  .chat-wrap { background: #f7f5f0; border-radius: 14px; padding: 16px; min-height: 180px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .bubble { max-width: 80%; padding: 11px 14px; border-radius: 16px; font-size: 14px; line-height: 1.5; animation: fadeUp .3s ease; }
+  .bubble.bot { background: #fff; border: 1px solid #E8E3DA; align-self: flex-start; border-bottom-left-radius: 4px; }
+  .bubble.user { background: linear-gradient(135deg,#ffb74d,#ffd180); color: #0d1f2d; font-weight: 600; align-self: flex-end; border-bottom-right-radius: 4px; }
+  .bubble.typing span { display: inline-block; width: 7px; height: 7px; background: #b0a898; border-radius: 50%; animation: blink 1s infinite; margin: 0 2px; }
+  .bubble.typing span:nth-child(2) { animation-delay: .2s; }
+  .bubble.typing span:nth-child(3) { animation-delay: .4s; }
+  @keyframes blink { 0%,80%,100%{opacity:.2} 40%{opacity:1} }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+  .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+  .chip { padding: 9px 16px; border: 1.5px solid #E8E3DA; border-radius: 999px; font-size: 13px; font-weight: 600; background: #fff; color: #2a2a2a; cursor: pointer; transition: all .2s; }
+  .chip:hover, .chip.selected { background: #ffb74d; border-color: #ffb74d; color: #0d1f2d; }
+
+  /* ── CARDS INMUEBLES ── */
+  .prop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 12px; margin-bottom: 16px; }
+  .prop-card { background: #fff; border: 1.5px solid #E8E3DA; border-radius: 14px; overflow: hidden; cursor: pointer; transition: all .2s; }
+  .prop-card:hover { border-color: #ffb74d; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,183,77,.18); }
+  .prop-card.selected { border-color: #ffb74d; background: #fffdf7; }
+  .prop-img { height: 110px; display: flex; align-items: center; justify-content: center; font-size: 40px; }
+  .prop-img.p1 { background: linear-gradient(135deg,#e8f4fd,#cce5fa); }
+  .prop-img.p2 { background: linear-gradient(135deg,#fef3cd,#fde68a); }
+  .prop-img.p3 { background: linear-gradient(135deg,#d1fae5,#a7f3d0); }
+  .prop-body { padding: 12px; }
+  .prop-name { font-size: 13px; font-weight: 800; color: #0d1f2d; margin-bottom: 4px; }
+  .prop-detail { font-size: 12px; color: #647890; line-height: 1.4; }
+  .prop-price { font-size: 14px; font-weight: 800; color: #ffb74d; margin-top: 6px; }
+  .prop-badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 999px; margin-top: 4px; }
+  .badge-hot { background: #fff3e0; color: #e65100; }
+  .badge-new { background: #e8f5e9; color: #2e7d32; }
+
+  /* ── AGENDA ── */
+  .day-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .day-btn { padding: 10px 14px; border: 1.5px solid #E8E3DA; border-radius: 10px; font-size: 13px; font-weight: 600; background: #fff; cursor: pointer; transition: all .2s; text-align: center; min-width: 72px; }
+  .day-btn:hover, .day-btn.selected { background: #ffb74d; border-color: #ffb74d; color: #0d1f2d; }
+  .day-btn .day-name { font-size: 11px; font-weight: 400; display: block; }
+  .time-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .time-btn { padding: 8px 16px; border: 1.5px solid #E8E3DA; border-radius: 999px; font-size: 13px; font-weight: 600; background: #fff; cursor: pointer; transition: all .2s; }
+  .time-btn:hover, .time-btn.selected { background: #0d1f2d; border-color: #0d1f2d; color: #fff; }
+  .time-btn.taken { background: #f5f5f5; color: #b0a898; cursor: default; text-decoration: line-through; }
+
+  /* ── LEAD CARD ── */
+  .lead-card { border-radius: 12px; padding: 16px; margin-bottom: 10px; }
+  .lead-hot { background: #fff8ee; border: 1.5px solid #ffcc80; }
+  .lead-warm { background: #fff8e1; border: 1.5px solid #ffe082; }
+  .lead-cold { background: #e3f2fd; border: 1.5px solid #90caf9; }
+  .tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; margin-bottom: 8px; }
+  .tag-hot { background: #ff6d00; color: #fff; }
+  .tag-warm { background: #f59f00; color: #fff; }
+  .tag-cold { background: #1565c0; color: #fff; }
+
+  /* ── TIMELINE SEGUIMIENTO ── */
+  .timeline { position: relative; padding-left: 24px; }
+  .timeline::before { content: ''; position: absolute; left: 7px; top: 0; bottom: 0; width: 2px; background: #E8E3DA; }
+  .tl-item { position: relative; padding-bottom: 18px; }
+  .tl-dot { position: absolute; left: -20px; top: 3px; width: 14px; height: 14px; border-radius: 50%; border: 2px solid #E8E3DA; background: #fff; transition: all .4s; }
+  .tl-dot.active { background: #22c55e; border-color: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,.2); }
+  .tl-dot.pending { background: #E8E3DA; }
+  .tl-day { font-size: 12px; font-weight: 800; color: #0d1f2d; margin-bottom: 2px; }
+  .tl-msg { font-size: 12px; color: #647890; line-height: 1.5; }
+
+  /* ── PIPELINE ── */
+  .pipeline { display: flex; gap: 6px; flex-wrap: wrap; }
+  .pipe-stage { flex: 1; min-width: 100px; background: #f7f5f0; border-radius: 10px; padding: 12px 10px; text-align: center; border: 1.5px solid #E8E3DA; transition: all .3s; }
+  .pipe-stage.active-stage { background: #fff8ee; border-color: #ffb74d; }
+  .pipe-stage .pipe-icon { font-size: 20px; margin-bottom: 5px; }
+  .pipe-stage .pipe-name { font-size: 11px; font-weight: 700; color: #2a2a2a; }
+  .pipe-stage .pipe-count { font-size: 18px; font-weight: 800; color: #ffb74d; margin-top: 4px; }
+
+  /* ── BOTONES ── */
+  .btn-primary { display: inline-block; background: linear-gradient(135deg,#ffb74d,#ffd180); color: #0d1f2d; font-size: 15px; font-weight: 700; padding: 14px 30px; border-radius: 999px; border: none; cursor: pointer; transition: all .2s; text-decoration: none; }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(255,183,77,.4); }
+  .btn-secondary { display: inline-block; background: transparent; color: #0d1f2d; font-size: 14px; font-weight: 600; padding: 12px 24px; border-radius: 999px; border: 1.5px solid #E8E3DA; cursor: pointer; transition: all .2s; margin-left: 10px; }
+  .btn-secondary:hover { border-color: #ffb74d; color: #ffb74d; }
+  .btn-ghost { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); color: #fff; font-size: 13px; font-weight: 600; padding: 12px 24px; border-radius: 999px; cursor: pointer; border: none; transition: all .2s; }
+  .btn-ghost:hover { background: rgba(255,255,255,.14); }
+
+  /* ── MODAL ── */
+  .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 100; align-items: center; justify-content: center; padding: 16px; }
+  .modal-backdrop.open { display: flex; }
+  .modal { background: #fff; border-radius: 20px; padding: 32px 28px; max-width: 420px; width: 100%; position: relative; animation: fadeUp .25s ease; }
+  .modal-title { font-size: 18px; font-weight: 800; color: #0d1f2d; margin-bottom: 6px; }
+  .modal-sub { font-size: 13px; color: #647890; margin-bottom: 20px; line-height: 1.5; }
+  .modal-step { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f0ebe3; }
+  .modal-step:last-child { border-bottom: none; }
+  .modal-step-icon { width: 32px; height: 32px; border-radius: 50%; background: #f7f5f0; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; transition: all .4s; }
+  .modal-step-icon.done { background: #22c55e; }
+  .modal-step-text { font-size: 13px; color: #647890; }
+  .modal-step-text strong { color: #0d1f2d; display: block; font-size: 13px; margin-bottom: 2px; }
+  .progress-bar-wrap { height: 6px; background: #f0ebe3; border-radius: 999px; margin: 18px 0 0; overflow: hidden; }
+  .progress-bar { height: 100%; background: linear-gradient(90deg,#ffb74d,#22c55e); border-radius: 999px; width: 0%; transition: width .4s; }
+
+  /* ── CONFIRMACIÓN FINAL ── */
+  .confirm-box { text-align: center; padding: 16px 0 0; }
+  .confirm-box .big-check { font-size: 52px; margin-bottom: 12px; animation: pop .4s ease; }
+  @keyframes pop { from{transform:scale(0)} to{transform:scale(1)} }
+  .confirm-box h3 { font-size: 20px; font-weight: 800; color: #0d1f2d; margin-bottom: 8px; }
+  .confirm-box p { font-size: 13px; color: #647890; line-height: 1.6; }
+
+  /* ── TABS ── */
+  .tabs { display: flex; gap: 4px; background: #f7f5f0; border-radius: 10px; padding: 4px; margin-bottom: 20px; }
+  .tab { flex: 1; padding: 9px 0; text-align: center; font-size: 13px; font-weight: 600; color: #8a8070; border-radius: 8px; cursor: pointer; transition: all .2s; }
+  .tab.active { background: #fff; color: #0d1f2d; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+
+  /* ── FOOTER ── */
+  .footer { background: #0d1f2d; text-align: center; padding: 28px 20px; }
+  .footer-brand { font-family: Georgia, serif; font-size: 20px; color: #fff; margin-bottom: 6px; }
+  .footer-brand span { color: #ffb74d; }
+  .footer p { font-size: 12px; color: rgba(255,255,255,.4); margin-top: 6px; }
+  .footer a { color: #ffb74d; text-decoration: none; }
+
+  /* ── NOTIF ── */
+  .notif { position: fixed; bottom: 24px; right: 24px; background: #0d1f2d; color: #fff; padding: 14px 20px; border-radius: 12px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.35); z-index: 200; transform: translateY(80px); opacity: 0; transition: all .4s; max-width: 300px; }
+  .notif.show { transform: translateY(0); opacity: 1; }
+  .notif-icon { font-size: 18px; flex-shrink: 0; }
+
+  /* ── WA BUBBLE ── */
+  .wa-bubble { background: #25d366; border-radius: 16px; padding: 20px; margin-top: 16px; position: relative; }
+  .wa-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .wa-avatar { width: 36px; height: 36px; background: rgba(255,255,255,.25); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .wa-name { font-size: 13px; font-weight: 700; color: #fff; }
+  .wa-sub { font-size: 11px; color: rgba(255,255,255,.7); }
+  .wa-msg { background: rgba(255,255,255,.15); border-radius: 0 10px 10px 10px; padding: 10px 14px; font-size: 13px; color: #fff; line-height: 1.55; }
+  .wa-tick { text-align: right; font-size: 11px; color: rgba(255,255,255,.6); margin-top: 4px; }
+
+  /* ── PANEL AGENTE ── */
+  .agent-panel { background: #f7f5f0; border-radius: 14px; padding: 16px; }
+  .agent-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #e8e3da; font-size: 13px; }
+  .agent-row:last-child { border-bottom: none; }
+  .agent-label { color: #647890; }
+  .agent-val { font-weight: 700; color: #0d1f2d; }
+  .dot-live { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; display: inline-block; margin-right: 5px; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  /* ── RESPONSIVE ── */
+  @media(max-width:480px) {
+    .stepper { gap: 0; }
+    .step-lbl { display: none; }
+    .prop-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="badge">🏡 Demo interactiva · Emporium IA</div>
+  <h1>El sistema que convierte<br>leads en <span>visitas cerradas</span></h1>
+  <p>Prueba cómo funciona el agente IA para inmobiliarias: desde el primer contacto hasta la visita agendada y el seguimiento automático.</p>
+  <div class="kpi-row">
+    <div class="kpi"><span class="kpi-val">24/7</span><span class="kpi-lbl">Captación activa</span></div>
+    <div class="kpi"><span class="kpi-val">&lt;2'</span><span class="kpi-lbl">Primera respuesta</span></div>
+    <div class="kpi"><span class="kpi-val">3x</span><span class="kpi-lbl">Leads cualificados</span></div>
+    <div class="kpi"><span class="kpi-val">15d</span><span class="kpi-lbl">Seguimiento auto</span></div>
+  </div>
+</div>
+
+<div class="shell">
+
+  <!-- TABS PRINCIPALES -->
+  <div class="tabs" id="mainTabs">
+    <div class="tab active" onclick="showTab(0)">💬 Captación</div>
+    <div class="tab" onclick="showTab(1)">📅 Agenda</div>
+    <div class="tab" onclick="showTab(2)">📊 Panel agente</div>
+    <div class="tab" onclick="showTab(3)">🔔 Seguimiento</div>
+  </div>
+
+  <!-- ═══════════ TAB 0: CAPTACIÓN CHAT ═══════════ -->
+  <div id="tab0">
+    <div class="section-label">Paso 1 · Captación y cualificación</div>
+
+    <!-- Stepper -->
+    <div class="stepper" id="stepper">
+      <div class="step"><div class="step-dot active" id="sd0">1</div><span class="step-lbl active" id="sl0">Contacto</span></div>
+      <div class="step"><div class="step-dot" id="sd1">2</div><span class="step-lbl" id="sl1">Tipo</span></div>
+      <div class="step"><div class="step-dot" id="sd2">3</div><span class="step-lbl" id="sl2">Zona</span></div>
+      <div class="step"><div class="step-dot" id="sd3">4</div><span class="step-lbl" id="sl3">Presupuesto</span></div>
+      <div class="step"><div class="step-dot" id="sd4">5</div><span class="step-lbl" id="sl4">Urgencia</span></div>
+      <div class="step"><div class="step-dot" id="sd5">✓</div><span class="step-lbl" id="sl5">Resultado</span></div>
+    </div>
+
+    <div class="card">
+      <div class="chat-wrap" id="chatWrap"></div>
+      <div id="chipArea" class="chip-row"></div>
+      <div id="chatCTA" style="display:none; margin-top:12px;">
+        <button class="btn-primary" onclick="goToAgenda()">📅 Ver agenda disponible →</button>
+      </div>
+    </div>
+
+    <!-- Inmuebles sugeridos (aparecen tras cualificación) -->
+    <div id="propSection" style="display:none;">
+      <div class="section-label" style="margin-top:20px;">Inmuebles que encajan con tu búsqueda</div>
+      <div class="prop-grid" id="propGrid"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════ TAB 1: AGENDA ═══════════ -->
+  <div id="tab1" style="display:none;">
+    <div class="section-label">Paso 2 · Agenda tu visita</div>
+    <div class="card">
+      <p style="font-size:14px; color:#647890; margin-bottom:16px;">Selecciona el día y la hora que mejor te venga. Las plazas <span style="text-decoration:line-through; color:#b0a898;">tachadas</span> ya están ocupadas.</p>
+      <p style="font-size:13px; font-weight:700; color:#0d1f2d; margin-bottom:10px;">¿Qué día te viene bien?</p>
+      <div class="day-row" id="dayRow"></div>
+      <div id="timeSection" style="display:none; margin-top:16px;">
+        <p style="font-size:13px; font-weight:700; color:#0d1f2d; margin-bottom:10px;">¿A qué hora?</p>
+        <div class="time-row" id="timeRow"></div>
+      </div>
+      <div id="bookBtn" style="display:none; margin-top:20px;">
+        <button class="btn-primary" onclick="openModal()">✅ Confirmar visita</button>
+      </div>
+    </div>
+
+    <!-- WhatsApp simulado -->
+    <div id="waSection" style="display:none;">
+      <div class="section-label" style="margin-top:20px;">📲 WhatsApp enviado automáticamente al agente</div>
+      <div class="card">
+        <div class="wa-bubble">
+          <div class="wa-header">
+            <div class="wa-avatar">🏡</div>
+            <div><div class="wa-name">Emporium IA · Inmobiliaria</div><div class="wa-sub">Notificación automática</div></div>
+          </div>
+          <div class="wa-msg" id="waMsg"></div>
+          <div class="wa-tick">✔✔ Entregado · ahora</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ TAB 2: PANEL AGENTE ═══════════ -->
+  <div id="tab2" style="display:none;">
+    <div class="section-label">Vista del agente inmobiliario</div>
+
+    <!-- Pipeline -->
+    <div class="card">
+      <p style="font-size:14px; font-weight:800; color:#0d1f2d; margin-bottom:14px;">Pipeline de leads del día</p>
+      <div class="pipeline" id="pipelineEl">
+        <div class="pipe-stage active-stage"><div class="pipe-icon">📥</div><div class="pipe-name">Nuevos</div><div class="pipe-count" id="pCount0">3</div></div>
+        <div class="pipe-stage"><div class="pipe-icon">🎯</div><div class="pipe-name">Cualificados</div><div class="pipe-count" id="pCount1">2</div></div>
+        <div class="pipe-stage"><div class="pipe-icon">📅</div><div class="pipe-name">Visita ok</div><div class="pipe-count" id="pCount2">1</div></div>
+        <div class="pipe-stage"><div class="pipe-icon">🔥</div><div class="pipe-name">En cierre</div><div class="pipe-count" id="pCount3">1</div></div>
+        <div class="pipe-stage"><div class="pipe-icon">✅</div><div class="pipe-name">Cerrados</div><div class="pipe-count" id="pCount4">0</div></div>
+      </div>
+    </div>
+
+    <!-- Lead Cards -->
+    <div class="section-label" style="margin-top:20px;">Leads cualificados hoy</div>
+    <div class="card lead-card lead-hot">
+      <span class="tag tag-hot">🔥 Caliente</span>
+      <div class="agent-panel">
+        <div class="agent-row"><span class="agent-label">Nombre</span><span class="agent-val">Ana García</span></div>
+        <div class="agent-row"><span class="agent-label">Operación</span><span class="agent-val">Compra · piso 3 hab.</span></div>
+        <div class="agent-row"><span class="agent-label">Zona</span><span class="agent-val">Centro / Ensanche</span></div>
+        <div class="agent-row"><span class="agent-label">Presupuesto</span><span class="agent-val">200.000 – 260.000 €</span></div>
+        <div class="agent-row"><span class="agent-label">Urgencia</span><span class="agent-val">Busca en 1-2 meses</span></div>
+        <div class="agent-row"><span class="agent-label">Fuente</span><span class="agent-val">Idealista · Web</span></div>
+        <div class="agent-row"><span class="agent-label">Estado</span><span class="agent-val"><span class="dot-live"></span>Visita confirmada · Jueves 16</span></div>
+      </div>
+    </div>
+    <div class="card lead-card lead-warm" style="margin-top:10px;">
+      <span class="tag tag-warm">☀️ Tibio</span>
+      <div class="agent-panel">
+        <div class="agent-row"><span class="agent-label">Nombre</span><span class="agent-val">Carlos Méndez</span></div>
+        <div class="agent-row"><span class="agent-label">Operación</span><span class="agent-val">Alquiler · piso 2 hab.</span></div>
+        <div class="agent-row"><span class="agent-label">Zona</span><span class="agent-val">Extrarradio / flexible</span></div>
+        <div class="agent-row"><span class="agent-label">Presupuesto</span><span class="agent-val">700 – 850 €/mes</span></div>
+        <div class="agent-row"><span class="agent-label">Urgencia</span><span class="agent-val">3-4 meses</span></div>
+        <div class="agent-row"><span class="agent-label">Estado</span><span class="agent-val">Seguimiento automático D3</span></div>
+      </div>
+    </div>
+    <div class="card lead-card lead-cold" style="margin-top:10px;">
+      <span class="tag tag-cold">❄️ Frío</span>
+      <div class="agent-panel">
+        <div class="agent-row"><span class="agent-label">Nombre</span><span class="agent-val">María López</span></div>
+        <div class="agent-row"><span class="agent-label">Operación</span><span class="agent-val">Compra · busca piso</span></div>
+        <div class="agent-row"><span class="agent-label">Urgencia</span><span class="agent-val">+6 meses</span></div>
+        <div class="agent-row"><span class="agent-label">Estado</span><span class="agent-val">Nurturing automático · D7</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ TAB 3: SEGUIMIENTO ═══════════ -->
+  <div id="tab3" style="display:none;">
+    <div class="section-label">Seguimiento automático post-visita</div>
+    <div class="card">
+      <p style="font-size:13px; color:#647890; margin-bottom:20px; line-height:1.6;">El sistema envía mensajes automáticos durante 15 días tras la visita. Sin que el agente tenga que recordar nada.</p>
+      <div class="timeline" id="timelineEl">
+        <div class="tl-item">
+          <div class="tl-dot active" id="td0"></div>
+          <div class="tl-day">D1 · WhatsApp enviado ✅</div>
+          <div class="tl-msg">«Ana, gracias por visitar el piso de Calle Mayor 12. Te adjunto la ficha completa y plano. ¿Tienes alguna duda?»</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot active" id="td1"></div>
+          <div class="tl-day">D3 · Mensaje de seguimiento ✅</div>
+          <div class="tl-msg">«Hola Ana, ¿has tenido ocasión de pensarlo? Tenemos otra visita mañana sobre este piso, por si quieres confirmar interés.»</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot pending" id="td2"></div>
+          <div class="tl-day">D7 · Nuevas propiedades similares ⏳</div>
+          <div class="tl-msg">Envío automático de 2-3 pisos similares que hayan entrado en los últimos días.</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot pending" id="td3"></div>
+          <div class="tl-day">D15 · Último contacto ⏳</div>
+          <div class="tl-msg">Si no ha respondido, el lead se archiva automáticamente y el agente recibe un aviso para decidir si mantenerlo activo.</div>
+        </div>
+      </div>
+
+      <button class="btn-primary" style="margin-top:20px;" onclick="activateTimeline()">▶ Simular seguimiento D7 →</button>
+    </div>
+
+    <!-- Email simulado -->
+    <div class="section-label" style="margin-top:20px;">📩 Email automático D7</div>
+    <div class="card" id="emailCard" style="display:none;">
+      <div style="background:#f7f5f0; border-radius:10px; padding:16px; font-size:13px; line-height:1.7; color:#2a2a2a;">
+        <p style="font-size:12px; color:#8a8070; margin-bottom:8px;"><strong>De:</strong> noreply@emporium-ia.es &nbsp;|&nbsp; <strong>Para:</strong> ana.garcia@email.com</p>
+        <p style="font-size:12px; color:#8a8070; margin-bottom:14px;"><strong>Asunto:</strong> Ana, estas propiedades acaban de entrar al mercado 🏡</p>
+        <p>Hola <strong>Ana</strong>,</p>
+        <p style="margin-top:8px;">Han entrado dos nuevas propiedades que encajan con lo que buscas en el Centro:</p>
+        <ul style="margin:10px 0 10px 18px; color:#3a4f63;">
+          <li>🏠 Piso 3 hab. · Calle Ancha 4 · 245.000€ · Reformado</li>
+          <li>🏠 Piso 3 hab. · Plaza Mayor 8 · 238.000€ · Luminoso</li>
+        </ul>
+        <p>¿Te interesa verlos esta semana? Puedes elegir hueco directamente en el calendario: <a style="color:#ffb74d; font-weight:700;" href="#">Ver disponibilidad →</a></p>
+        <p style="margin-top:10px; font-size:12px; color:#8a8070;">— Equipo de [NOMBRE_AGENCIA] · Automatizado por Emporium IA</p>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /shell -->
+
+<!-- CTA FINAL -->
+<div style="background: linear-gradient(135deg,#0d1f2d,#163247); padding: 52px 20px; text-align:center;">
+  <p style="font-family:Georgia,serif; font-size:28px; color:#fff; margin-bottom:10px;">¿Lo ponemos en marcha en su agencia?</p>
+  <p style="font-size:14px; color:rgba(255,255,255,.6); max-width:460px; margin:0 auto 28px; line-height:1.65;">20 minutos de llamada son suficientes para ver si tiene sentido para su equipo. Sin permanencia, sin compromiso.</p>
+  <a href="https://wa.me/34604380891?text=Hola%20Jos%C3%A9%2C%20he%20visto%20la%20demo%20de%20inmobiliarias%20y%20quiero%20saber%20m%C3%A1s" class="btn-primary" style="margin-right:10px;">💬 Hablar con José Manuel</a>
+  <a href="mailto:contacto@emporium-ia.es" style="display:inline-block; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16); color:#fff; font-size:14px; font-weight:600; padding:14px 26px; border-radius:999px; text-decoration:none; margin-top:10px;">✉️ Escribir por email</a>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-brand">Emporium <span>IA</span></div>
+  <p>emporium-ia.es · <a href="mailto:contacto@emporium-ia.es">contacto@emporium-ia.es</a> · +34 604 380 891</p>
+  <p style="margin-top:10px; font-size:11px;">Legitimación: interés legítimo. Derechos ante AEPD o <a href="mailto:dpd@emporium-ia.es">dpd@emporium-ia.es</a> · EMPORIUM IA E.S.P.J.</p>
+</div>
+
+<!-- MODAL CONFIRMACIÓN -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <div id="modalContent">
+      <div class="modal-title">Confirmando su visita…</div>
+      <div class="modal-sub">El sistema está registrando todos los datos automáticamente.</div>
+      <div class="modal-step"><div class="modal-step-icon" id="ms0">⏳</div><div class="modal-step-text"><strong>Validando disponibilidad</strong>Comprobando el calendario del agente</div></div>
+      <div class="modal-step"><div class="modal-step-icon" id="ms1">⏳</div><div class="modal-step-text"><strong>Bloqueando hueco</strong>Reservando la franja horaria</div></div>
+      <div class="modal-step"><div class="modal-step-icon" id="ms2">⏳</div><div class="modal-step-text"><strong>Enviando WhatsApp al lead</strong>Confirmación con dirección y hora</div></div>
+      <div class="modal-step"><div class="modal-step-icon" id="ms3">⏳</div><div class="modal-step-text"><strong>Notificando al agente</strong>Ficha completa del lead por Telegram</div></div>
+      <div class="modal-step"><div class="modal-step-icon" id="ms4">⏳</div><div class="modal-step-text"><strong>Alta en CRM</strong>Expediente creado automáticamente</div></div>
+      <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
+    </div>
+    <div class="confirm-box" id="confirmBox" style="display:none;">
+      <div class="big-check">✅</div>
+      <h3>¡Visita confirmada!</h3>
+      <p>Todo registrado sin intervención manual. El lead recibe WhatsApp de confirmación y el agente tiene la ficha lista.</p>
+      <button class="btn-primary" style="margin-top:16px;" onclick="closeModal()">Continuar demo →</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIF TOAST -->
+<div class="notif" id="notif"><span class="notif-icon" id="notifIcon">📲</span><span id="notifMsg"></span></div>
+
+<script>
+// ─── STATE ───
+const state = {
+  step: 0,
+  tipo: '', zona: '', presupuesto: '', urgencia: '',
+  selectedDay: null, selectedTime: null,
+  selectedProp: null
+};
+
+// ─── CHAT FLOW ───
+const chatFlow = [
+  {
+    bot: '👋 Hola, soy el asistente de esta inmobiliaria. ¿Qué estás buscando?',
+    chips: ['🏠 Comprar', '🔑 Alquilar', '💰 Vender mi piso'],
+    key: 'tipo'
+  },
+  {
+    bot: '¡Perfecto! ¿En qué zona te gustaría?',
+    chips: ['🏙️ Centro / Ensanche', '🌳 Extrarradio', '📍 Me es flexible'],
+    key: 'zona'
+  },
+  {
+    bot: '¿Cuál es tu presupuesto aproximado?',
+    chips: ['Hasta 150.000€', '150.000 – 250.000€', '+250.000€', 'Hasta 800€/mes'],
+    key: 'presupuesto'
+  },
+  {
+    bot: '¿En cuánto tiempo necesitas hacer el cambio?',
+    chips: ['🔥 1-2 meses', '☀️ 3-4 meses', '❄️ +6 meses'],
+    key: 'urgencia'
+  }
+];
+
+let chatStep = 0;
+
+function initChat() {
+  setTimeout(() => addBubble('bot', chatFlow[0].bot), 400);
+  setTimeout(() => showChips(chatFlow[0].chips, chatFlow[0].key), 900);
+}
+
+function addBubble(type, text) {
+  const wrap = document.getElementById('chatWrap');
+  const b = document.createElement('div');
+  b.className = 'bubble ' + type;
+  b.innerHTML = text;
+  wrap.appendChild(b);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function showTyping(cb, delay = 700) {
+  const wrap = document.getElementById('chatWrap');
+  const t = document.createElement('div');
+  t.className = 'bubble bot typing';
+  t.innerHTML = '<span></span><span></span><span></span>';
+  t.id = 'typing';
+  wrap.appendChild(t);
+  wrap.scrollTop = wrap.scrollHeight;
+  setTimeout(() => { t.remove(); cb(); }, delay);
+}
+
+function showChips(chips, key) {
+  const area = document.getElementById('chipArea');
+  area.innerHTML = '';
+  chips.forEach(c => {
+    const el = document.createElement('div');
+    el.className = 'chip';
+    el.textContent = c;
+    el.onclick = () => selectChip(c, key, chips);
+    area.appendChild(el);
+  });
+}
+
+function selectChip(val, key, chips) {
+  state[key] = val;
+  document.getElementById('chipArea').innerHTML = '';
+  addBubble('user', val);
+  advanceStepper(chatStep + 1);
+  chatStep++;
+
+  if (chatStep < chatFlow.length) {
+    showTyping(() => {
+      addBubble('bot', chatFlow[chatStep].bot);
+      setTimeout(() => showChips(chatFlow[chatStep].chips, chatFlow[chatStep].key), 300);
+    });
+  } else {
+    showResult();
+  }
+}
+
+function advanceStepper(idx) {
+  for (let i = 0; i < 6; i++) {
+    const dot = document.getElementById('sd' + i);
+    const lbl = document.getElementById('sl' + i);
+    if (!dot) continue;
+    if (i < idx) { dot.classList.add('done'); dot.classList.remove('active'); lbl && lbl.classList.replace('active','done'); }
+    else if (i === idx) { dot.classList.add('active'); dot.classList.remove('done'); lbl && lbl.classList.add('active'); }
+    else { dot.classList.remove('active','done'); lbl && lbl.classList.remove('active','done'); }
+  }
+}
+
+function showResult() {
+  const urgency = state.urgencia;
+  let tag = '☀️ Tibio', msg = '';
+  if (urgency.includes('1-2')) tag = '🔥 Caliente — pasará al agente inmediatamente';
+  else if (urgency.includes('+6')) tag = '❄️ Frío — entrará en nurturing automático';
+  else tag = '☀️ Tibio — recibirá seguimiento suave durante 7 días';
+
+  showTyping(() => {
+    addBubble('bot', `¡Perfecto! Con tus datos hemos encontrado <strong>3 propiedades</strong> que encajan. Tu perfil: <strong>${tag}</strong>`);
+    advanceStepper(5);
+    document.getElementById('chatCTA').style.display = 'block';
+    showProps();
+    toast('📲', 'Notificación enviada al agente con tu perfil');
+    updatePipeline();
+  }, 1000);
+}
+
+function showProps() {
+  const section = document.getElementById('propSection');
+  const grid = document.getElementById('propGrid');
+  section.style.display = 'block';
+  const props = [
+    { cls: 'p1', icon: '🏢', name: 'Calle Mayor 12, 3ºB', detail: '3 hab · 95m² · Reformado · Ascensor', price: '245.000€', badge: 'badge-hot', blabel: '🔥 Muy visto' },
+    { cls: 'p2', icon: '🏠', name: 'Plaza del Sol 4, 1ºA', detail: '3 hab · 88m² · Terraza · Garaje incluido', price: '228.000€', badge: 'badge-new', blabel: '🆕 Recién entrado' },
+    { cls: 'p3', icon: '🏡', name: 'Calle Ancha 7, 2ºC', detail: '3 hab · 102m² · Patio · Zona tranquila', price: '238.000€', badge: '', blabel: '' }
+  ];
+  grid.innerHTML = props.map((p, i) => `
+    <div class="prop-card" id="pc${i}" onclick="selectProp(${i})">
+      <div class="prop-img ${p.cls}">${p.icon}</div>
+      <div class="prop-body">
+        <div class="prop-name">${p.name}</div>
+        <div class="prop-detail">${p.detail}</div>
+        <div class="prop-price">${p.price}</div>
+        ${p.badge ? `<span class="prop-badge ${p.badge}">${p.blabel}</span>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+function selectProp(i) {
+  document.querySelectorAll('.prop-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('pc' + i).classList.add('selected');
+  state.selectedProp = i;
+  toast('🏡', 'Inmueble guardado en tu perfil');
+}
+
+function goToAgenda() { showTab(1); }
+
+// ─── AGENDA ───
+const days = [
+  { name: 'Lun', date: '19 mayo' },
+  { name: 'Mar', date: '20 mayo' },
+  { name: 'Mié', date: '21 mayo' },
+  { name: 'Jue', date: '22 mayo' },
+  { name: 'Vie', date: '23 mayo' }
+];
+const times = ['10:00', '10:30', '11:00', '11:30', '12:00', '16:00', '16:30', '17:00'];
+const taken = { 0: ['11:00', '16:00'], 1: ['10:00', '10:30'], 2: [], 3: ['10:00'], 4: ['16:00', '16:30'] };
+
+function initAgenda() {
+  const dr = document.getElementById('dayRow');
+  dr.innerHTML = days.map((d, i) => `
+    <div class="day-btn" id="db${i}" onclick="selectDay(${i})">
+      <span class="day-name">${d.name}</span>${d.date}
+    </div>`).join('');
+}
+
+function selectDay(i) {
+  document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('db' + i).classList.add('selected');
+  state.selectedDay = i;
+  state.selectedTime = null;
+  document.getElementById('bookBtn').style.display = 'none';
+  const tr = document.getElementById('timeRow');
+  tr.innerHTML = times.map(t => {
+    const isTaken = (taken[i] || []).includes(t);
+    return `<div class="time-btn${isTaken ? ' taken' : ''}" onclick="${isTaken ? '' : `selectTime('${t}')`}">${t}</div>`;
+  }).join('');
+  document.getElementById('timeSection').style.display = 'block';
+}
+
+function selectTime(t) {
+  document.querySelectorAll('.time-btn:not(.taken)').forEach(b => b.classList.remove('selected'));
+  event.target.classList.add('selected');
+  state.selectedTime = t;
+  document.getElementById('bookBtn').style.display = 'block';
+}
+
+function openModal() {
+  document.getElementById('modalBackdrop').classList.add('open');
+  runModal();
+}
+
+function runModal() {
+  const steps = ['ms0','ms1','ms2','ms3','ms4'];
+  const bar = document.getElementById('progressBar');
+  let i = 0;
+  const iv = setInterval(() => {
+    if (i < steps.length) {
+      document.getElementById(steps[i]).textContent = '✅';
+      document.getElementById(steps[i]).classList.add('done');
+      bar.style.width = ((i + 1) / steps.length * 100) + '%';
+      i++;
+    } else {
+      clearInterval(iv);
+      setTimeout(() => {
+        document.getElementById('modalContent').style.display = 'none';
+        document.getElementById('confirmBox').style.display = 'block';
+        showWA();
+        updatePipeline(true);
+      }, 400);
+    }
+  }, 600);
+}
+
+function closeModal() {
+  document.getElementById('modalBackdrop').classList.remove('open');
+}
+
+function showWA() {
+  const d = days[state.selectedDay] || { name: 'Jueves', date: '22 mayo' };
+  const t = state.selectedTime || '11:00';
+  document.getElementById('waMsg').innerHTML = `🏠 *Visita confirmada*\n\nHola Ana, tu visita ha quedado confirmada para el *${d.name} ${d.date} a las ${t}*.\n\nDirección: Calle Mayor 12, 3ºB\nAgente: Carmen Rodríguez\nTel: +34 604 380 891\n\n¿Necesitas indicaciones? Responde a este mensaje 👇`;
+  document.getElementById('waSection').style.display = 'block';
+  toast('✅', 'Visita confirmada y WhatsApp enviado');
+}
+
+// ─── PIPELINE ───
+let pipeCounts = [3, 2, 1, 1, 0];
+function updatePipeline(confirm = false) {
+  if (confirm) {
+    pipeCounts[0] = Math.max(0, pipeCounts[0] - 1);
+    pipeCounts[2]++;
+  } else {
+    pipeCounts[0]++;
+    pipeCounts[1]++;
+  }
+  for (let i = 0; i < 5; i++) {
+    const el = document.getElementById('pCount' + i);
+    if (el) el.textContent = pipeCounts[i];
+  }
+}
+
+// ─── TIMELINE ───
+function activateTimeline() {
+  document.getElementById('td2').classList.replace('pending', 'active');
+  document.getElementById('emailCard').style.display = 'block';
+  toast('📩', 'Email D7 enviado automáticamente a Ana');
+  event.target.textContent = '▶ Simular D15 →';
+  event.target.onclick = activateD15;
+}
+function activateD15() {
+  document.getElementById('td3').classList.replace('pending', 'active');
+  toast('🗂️', 'Lead archivado automáticamente — agente notificado');
+  event.target.style.display = 'none';
+}
+
+// ─── TABS ───
+function showTab(n) {
+  [0,1,2,3].forEach(i => {
+    document.getElementById('tab' + i).style.display = i === n ? 'block' : 'none';
+    document.querySelectorAll('.tab')[i].classList.toggle('active', i === n);
+  });
+}
+
+// ─── TOAST ───
+function toast(icon, msg) {
+  const n = document.getElementById('notif');
+  document.getElementById('notifIcon').textContent = icon;
+  document.getElementById('notifMsg').textContent = msg;
+  n.classList.add('show');
+  setTimeout(() => n.classList.remove('show'), 3000);
+}
+
+// ─── INIT ───
+initChat();
+initAgenda();
+</script>
+</body>
+</html>
