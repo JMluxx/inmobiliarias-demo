@@ -2,366 +2,542 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Demo IA Inmobiliaria — Emporium IA</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f1923; min-height: 100vh; color: #2a2a2a; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f1923;color:#2a2a2a}
 
-  /* ── HERO ── */
-  .hero { background: linear-gradient(135deg, #0d1f2d 0%, #163247 100%); padding: 48px 20px 40px; text-align: center; }
-  .badge { display: inline-block; background: rgba(255,183,77,.14); border: 1px solid rgba(255,183,77,.35); color: #ffb74d; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; padding: 6px 16px; border-radius: 999px; margin-bottom: 20px; }
-  .hero h1 { font-family: Georgia, serif; font-size: clamp(26px,5vw,42px); color: #fff; font-weight: 400; line-height: 1.1; margin-bottom: 14px; }
-  .hero h1 span { color: #ffb74d; }
-  .hero p { font-size: 15px; color: rgba(255,255,255,.64); line-height: 1.65; max-width: 540px; margin: 0 auto 28px; }
-  .kpi-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 0; }
-  .kpi { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 14px 18px; min-width: 100px; text-align: center; }
-  .kpi-val { font-size: 22px; color: #ffb74d; font-weight: 800; display: block; }
-  .kpi-lbl { font-size: 11px; color: rgba(255,255,255,.5); margin-top: 4px; display: block; }
+/* ── LIVE BAR ── */
+.live-bar{background:#0a1520;border-bottom:1px solid rgba(255,183,77,.2);padding:8px 20px;display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap}
+.live-item{display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,.55);font-weight:600}
+.dot-live{width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block;animation:pulse 1.5s infinite}
+.live-val{color:#ffb74d;font-weight:800}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 
-  /* ── LAYOUT ── */
-  .shell { max-width: 820px; margin: 0 auto; padding: 32px 16px 60px; }
-  .section-label { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #8a8070; margin-bottom: 10px; }
-  .card { background: #fff; border-radius: 16px; border: 1px solid #E8E3DA; padding: 24px; margin-bottom: 12px; }
-  .card-dark { background: #0d1f2d; border-radius: 16px; padding: 28px; margin-bottom: 12px; }
+/* ── HERO ── */
+.hero{background:linear-gradient(160deg,#0d1f2d 0%,#122b40 50%,#0d1f2d 100%);padding:52px 20px 44px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(255,183,77,.07),transparent)}
+.badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,183,77,.13);border:1px solid rgba(255,183,77,.3);color:#ffb74d;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:7px 16px;border-radius:999px;margin-bottom:22px}
+.hero h1{font-family:Georgia,serif;font-size:clamp(28px,5vw,46px);color:#fff;font-weight:400;line-height:1.08;margin-bottom:14px}
+.hero h1 span{color:#ffb74d}
+.hero p{font-size:15px;color:rgba(255,255,255,.62);line-height:1.7;max-width:520px;margin:0 auto 30px}
+.kpi-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.kpi{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px 20px;min-width:110px;text-align:center;transition:all .3s;cursor:default}
+.kpi:hover{background:rgba(255,183,77,.08);border-color:rgba(255,183,77,.3)}
+.kpi-val{font-size:26px;color:#ffb74d;font-weight:900;display:block}
+.kpi-lbl{font-size:11px;color:rgba(255,255,255,.45);margin-top:5px;display:block}
 
-  /* ── STEPPER ── */
-  .stepper { display: flex; justify-content: space-between; margin: 0 0 28px; position: relative; }
-  .stepper::before { content: ''; position: absolute; top: 14px; left: 10%; right: 10%; height: 2px; background: #E8E3DA; z-index: 0; }
-  .step { display: flex; flex-direction: column; align-items: center; gap: 6px; z-index: 1; flex: 1; }
-  .step-dot { width: 28px; height: 28px; border-radius: 50%; background: #E8E3DA; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: #b0a898; transition: all .3s; }
-  .step-dot.active { background: #ffb74d; color: #0d1f2d; box-shadow: 0 0 0 4px rgba(255,183,77,.25); }
-  .step-dot.done { background: #22c55e; color: #fff; }
-  .step-lbl { font-size: 10px; color: #b0a898; text-align: center; font-weight: 600; letter-spacing: .04em; }
-  .step-lbl.active { color: #ffb74d; }
-  .step-lbl.done { color: #22c55e; }
+/* ── LAYOUT ── */
+.shell{max-width:840px;margin:0 auto;padding:28px 16px 64px}
+.sec-lbl{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#8a8070;margin-bottom:10px}
+.card{background:#fff;border-radius:18px;border:1px solid #E8E3DA;padding:24px;margin-bottom:12px}
 
-  /* ── CHAT ── */
-  .chat-wrap { background: #f7f5f0; border-radius: 14px; padding: 16px; min-height: 180px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px; }
-  .bubble { max-width: 80%; padding: 11px 14px; border-radius: 16px; font-size: 14px; line-height: 1.5; animation: fadeUp .3s ease; }
-  .bubble.bot { background: #fff; border: 1px solid #E8E3DA; align-self: flex-start; border-bottom-left-radius: 4px; }
-  .bubble.user { background: linear-gradient(135deg,#ffb74d,#ffd180); color: #0d1f2d; font-weight: 600; align-self: flex-end; border-bottom-right-radius: 4px; }
-  .bubble.typing span { display: inline-block; width: 7px; height: 7px; background: #b0a898; border-radius: 50%; animation: blink 1s infinite; margin: 0 2px; }
-  .bubble.typing span:nth-child(2) { animation-delay: .2s; }
-  .bubble.typing span:nth-child(3) { animation-delay: .4s; }
-  @keyframes blink { 0%,80%,100%{opacity:.2} 40%{opacity:1} }
-  @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+/* ── TABS ── */
+.tabs{display:flex;gap:4px;background:#1a2d3d;border-radius:12px;padding:5px;margin-bottom:22px;border:1px solid rgba(255,255,255,.07)}
+.tab{flex:1;padding:10px 4px;text-align:center;font-size:12px;font-weight:700;color:rgba(255,255,255,.4);border-radius:9px;cursor:pointer;transition:all .2s;letter-spacing:.02em}
+.tab.active{background:#fff;color:#0d1f2d;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.tab-icon{display:block;font-size:16px;margin-bottom:3px}
 
-  .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
-  .chip { padding: 9px 16px; border: 1.5px solid #E8E3DA; border-radius: 999px; font-size: 13px; font-weight: 600; background: #fff; color: #2a2a2a; cursor: pointer; transition: all .2s; }
-  .chip:hover, .chip.selected { background: #ffb74d; border-color: #ffb74d; color: #0d1f2d; }
+/* ── STEPPER ── */
+.stepper{display:flex;justify-content:space-between;margin:0 0 24px;position:relative}
+.stepper::before{content:'';position:absolute;top:13px;left:8%;right:8%;height:2px;background:#E8E3DA;z-index:0}
+.stepper::after{content:'';position:absolute;top:13px;left:8%;height:2px;background:linear-gradient(90deg,#22c55e,#ffb74d);z-index:0;width:0%;transition:width .5s ease;id:stepLine}
+.step{display:flex;flex-direction:column;align-items:center;gap:5px;z-index:1;flex:1}
+.step-dot{width:26px;height:26px;border-radius:50%;background:#E8E3DA;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#b0a898;transition:all .35s}
+.step-dot.active{background:#ffb74d;color:#0d1f2d;box-shadow:0 0 0 5px rgba(255,183,77,.2)}
+.step-dot.done{background:#22c55e;color:#fff}
+.step-lbl{font-size:9px;color:#b0a898;text-align:center;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
+.step-lbl.active{color:#ffb74d}
+.step-lbl.done{color:#22c55e}
 
-  /* ── CARDS INMUEBLES ── */
-  .prop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 12px; margin-bottom: 16px; }
-  .prop-card { background: #fff; border: 1.5px solid #E8E3DA; border-radius: 14px; overflow: hidden; cursor: pointer; transition: all .2s; }
-  .prop-card:hover { border-color: #ffb74d; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,183,77,.18); }
-  .prop-card.selected { border-color: #ffb74d; background: #fffdf7; }
-  .prop-img { height: 110px; display: flex; align-items: center; justify-content: center; font-size: 40px; }
-  .prop-img.p1 { background: linear-gradient(135deg,#e8f4fd,#cce5fa); }
-  .prop-img.p2 { background: linear-gradient(135deg,#fef3cd,#fde68a); }
-  .prop-img.p3 { background: linear-gradient(135deg,#d1fae5,#a7f3d0); }
-  .prop-body { padding: 12px; }
-  .prop-name { font-size: 13px; font-weight: 800; color: #0d1f2d; margin-bottom: 4px; }
-  .prop-detail { font-size: 12px; color: #647890; line-height: 1.4; }
-  .prop-price { font-size: 14px; font-weight: 800; color: #ffb74d; margin-top: 6px; }
-  .prop-badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 999px; margin-top: 4px; }
-  .badge-hot { background: #fff3e0; color: #e65100; }
-  .badge-new { background: #e8f5e9; color: #2e7d32; }
+/* ── CHAT ── */
+.chat-shell{background:#f0ede7;border-radius:16px;overflow:hidden;margin-bottom:14px}
+.chat-header{background:#0d1f2d;padding:12px 16px;display:flex;align-items:center;gap:10px}
+.chat-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#ffb74d,#ffd180);display:flex;align-items:center;justify-content:center;font-size:15px}
+.chat-name{font-size:13px;font-weight:700;color:#fff}
+.chat-status{font-size:11px;color:#22c55e;display:flex;align-items:center;gap:4px}
+.chat-msgs{padding:16px;min-height:200px;max-height:320px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.bubble{max-width:82%;padding:11px 14px;font-size:14px;line-height:1.55;animation:slideUp .3s ease}
+.bubble.bot{background:#fff;border-radius:4px 16px 16px 16px;align-self:flex-start;box-shadow:0 1px 3px rgba(0,0,0,.07)}
+.bubble.bot .bot-name{font-size:10px;font-weight:700;color:#ffb74d;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em}
+.bubble.user{background:linear-gradient(135deg,#0d1f2d,#163247);color:#fff;border-radius:16px 4px 16px 16px;align-self:flex-end}
+.bubble.typing span{display:inline-block;width:8px;height:8px;background:#b0a898;border-radius:50%;animation:blink 1.2s infinite;margin:0 2px}
+.bubble.typing span:nth-child(2){animation-delay:.2s}
+.bubble.typing span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.chat-input-row{background:#fff;border-top:1px solid #E8E3DA;padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.chip-row{display:flex;flex-wrap:wrap;gap:7px}
+.chip{padding:9px 16px;border:1.5px solid #E8E3DA;border-radius:999px;font-size:13px;font-weight:600;background:#fff;color:#2a2a2a;cursor:pointer;transition:all .2s;user-select:none}
+.chip:hover{background:#fff8ee;border-color:#ffb74d;color:#0d1f2d;transform:translateY(-1px)}
+.chip.selected{background:#ffb74d;border-color:#ffb74d;color:#0d1f2d}
 
-  /* ── AGENDA ── */
-  .day-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
-  .day-btn { padding: 10px 14px; border: 1.5px solid #E8E3DA; border-radius: 10px; font-size: 13px; font-weight: 600; background: #fff; cursor: pointer; transition: all .2s; text-align: center; min-width: 72px; }
-  .day-btn:hover, .day-btn.selected { background: #ffb74d; border-color: #ffb74d; color: #0d1f2d; }
-  .day-btn .day-name { font-size: 11px; font-weight: 400; display: block; }
-  .time-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .time-btn { padding: 8px 16px; border: 1.5px solid #E8E3DA; border-radius: 999px; font-size: 13px; font-weight: 600; background: #fff; cursor: pointer; transition: all .2s; }
-  .time-btn:hover, .time-btn.selected { background: #0d1f2d; border-color: #0d1f2d; color: #fff; }
-  .time-btn.taken { background: #f5f5f5; color: #b0a898; cursor: default; text-decoration: line-through; }
+/* ── SCORE BAR ── */
+.score-wrap{background:#f7f5f0;border-radius:12px;padding:14px 16px;margin-top:10px}
+.score-label{font-size:12px;font-weight:700;color:#2a2a2a;margin-bottom:8px;display:flex;justify-content:space-between}
+.score-track{height:10px;background:#E8E3DA;border-radius:999px;overflow:hidden}
+.score-fill{height:100%;border-radius:999px;transition:width .8s cubic-bezier(.4,0,.2,1)}
 
-  /* ── LEAD CARD ── */
-  .lead-card { border-radius: 12px; padding: 16px; margin-bottom: 10px; }
-  .lead-hot { background: #fff8ee; border: 1.5px solid #ffcc80; }
-  .lead-warm { background: #fff8e1; border: 1.5px solid #ffe082; }
-  .lead-cold { background: #e3f2fd; border: 1.5px solid #90caf9; }
-  .tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; margin-bottom: 8px; }
-  .tag-hot { background: #ff6d00; color: #fff; }
-  .tag-warm { background: #f59f00; color: #fff; }
-  .tag-cold { background: #1565c0; color: #fff; }
+/* ── PROP CARDS ── */
+.prop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:16px}
+.prop-card{background:#fff;border:2px solid #E8E3DA;border-radius:16px;overflow:hidden;cursor:pointer;transition:all .25s;position:relative}
+.prop-card:hover{border-color:#ffb74d;transform:translateY(-3px);box-shadow:0 8px 24px rgba(255,183,77,.2)}
+.prop-card.selected{border-color:#ffb74d;box-shadow:0 0 0 4px rgba(255,183,77,.15)}
+.prop-thumb{height:130px;position:relative;overflow:hidden}
+.prop-thumb-inner{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:52px;transition:transform .4s}
+.prop-card:hover .prop-thumb-inner{transform:scale(1.08)}
+.prop-thumb.t1{background:linear-gradient(160deg,#e0f2fe,#bae6fd)}
+.prop-thumb.t2{background:linear-gradient(160deg,#fef3c7,#fde68a)}
+.prop-thumb.t3{background:linear-gradient(160deg,#dcfce7,#bbf7d0)}
+.prop-overlay{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.35));padding:8px 10px}
+.prop-price{font-size:15px;font-weight:900;color:#fff}
+.prop-body{padding:12px}
+.prop-name{font-size:13px;font-weight:800;color:#0d1f2d;margin-bottom:4px}
+.prop-detail{font-size:12px;color:#647890;line-height:1.45}
+.prop-feats{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.feat{font-size:10px;background:#f0ede7;color:#5a5040;padding:3px 8px;border-radius:999px;font-weight:700}
+.pbadge{position:absolute;top:8px;left:8px;font-size:10px;font-weight:700;padding:4px 10px;border-radius:999px}
+.pbadge-hot{background:#ef4444;color:#fff}
+.pbadge-new{background:#22c55e;color:#fff}
+.pbadge-exc{background:#f59e0b;color:#fff}
+.prop-cta{width:100%;padding:10px;background:#0d1f2d;color:#fff;font-size:12px;font-weight:700;border:none;cursor:pointer;transition:background .2s}
+.prop-cta:hover{background:#163247}
+.prop-selected-mark{display:none;position:absolute;top:8px;right:8px;background:#ffb74d;border-radius:50%;width:24px;height:24px;align-items:center;justify-content:center;font-size:12px}
+.prop-card.selected .prop-selected-mark{display:flex}
 
-  /* ── TIMELINE SEGUIMIENTO ── */
-  .timeline { position: relative; padding-left: 24px; }
-  .timeline::before { content: ''; position: absolute; left: 7px; top: 0; bottom: 0; width: 2px; background: #E8E3DA; }
-  .tl-item { position: relative; padding-bottom: 18px; }
-  .tl-dot { position: absolute; left: -20px; top: 3px; width: 14px; height: 14px; border-radius: 50%; border: 2px solid #E8E3DA; background: #fff; transition: all .4s; }
-  .tl-dot.active { background: #22c55e; border-color: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,.2); }
-  .tl-dot.pending { background: #E8E3DA; }
-  .tl-day { font-size: 12px; font-weight: 800; color: #0d1f2d; margin-bottom: 2px; }
-  .tl-msg { font-size: 12px; color: #647890; line-height: 1.5; }
+/* ── VISOR INMUEBLE ── */
+.visor-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:150;align-items:center;justify-content:center;padding:12px}
+.visor-backdrop.open{display:flex}
+.visor{background:#fff;border-radius:20px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;animation:slideUp .3s ease}
+.visor-gallery{height:220px;position:relative;overflow:hidden}
+.visor-slide{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:80px;position:absolute;inset:0;opacity:0;transition:opacity .4s}
+.visor-slide.vs1{background:linear-gradient(160deg,#e0f2fe,#bae6fd)}
+.visor-slide.vs2{background:linear-gradient(160deg,#dcfce7,#a7f3d0)}
+.visor-slide.vs3{background:linear-gradient(160deg,#fef3c7,#fde68a)}
+.visor-slide.active{opacity:1}
+.visor-nav{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:6px}
+.visor-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.5);cursor:pointer;transition:background .2s}
+.visor-dot.active{background:#fff}
+.visor-arrows{position:absolute;top:50%;transform:translateY(-50%);width:100%;display:flex;justify-content:space-between;padding:0 10px}
+.visor-arr{background:rgba(0,0,0,.35);color:#fff;border:none;width:32px;height:32px;border-radius:50%;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s}
+.visor-arr:hover{background:rgba(0,0,0,.6)}
+.visor-body{padding:20px}
+.visor-title{font-size:17px;font-weight:800;color:#0d1f2d;margin-bottom:4px}
+.visor-sub{font-size:13px;color:#647890;margin-bottom:14px}
+.visor-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.visor-stat{background:#f7f5f0;border-radius:10px;padding:10px 12px}
+.visor-stat-lbl{font-size:10px;color:#8a8070;font-weight:700;text-transform:uppercase;margin-bottom:3px}
+.visor-stat-val{font-size:14px;font-weight:800;color:#0d1f2d}
+.visor-price{font-size:22px;font-weight:900;color:#ffb74d;margin-bottom:16px}
+.visor-close{position:absolute;top:12px;right:12px;background:rgba(0,0,0,.4);color:#fff;border:none;width:30px;height:30px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 
-  /* ── PIPELINE ── */
-  .pipeline { display: flex; gap: 6px; flex-wrap: wrap; }
-  .pipe-stage { flex: 1; min-width: 100px; background: #f7f5f0; border-radius: 10px; padding: 12px 10px; text-align: center; border: 1.5px solid #E8E3DA; transition: all .3s; }
-  .pipe-stage.active-stage { background: #fff8ee; border-color: #ffb74d; }
-  .pipe-stage .pipe-icon { font-size: 20px; margin-bottom: 5px; }
-  .pipe-stage .pipe-name { font-size: 11px; font-weight: 700; color: #2a2a2a; }
-  .pipe-stage .pipe-count { font-size: 18px; font-weight: 800; color: #ffb74d; margin-top: 4px; }
+/* ── MAP SIMULADO ── */
+.map-sim{background:linear-gradient(160deg,#e8f4f8,#d4eaf3);border-radius:14px;height:140px;position:relative;overflow:hidden;margin-bottom:14px;border:1px solid #cce0ea}
+.map-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(100,150,180,.15) 1px,transparent 1px),linear-gradient(90deg,rgba(100,150,180,.15) 1px,transparent 1px);background-size:28px 28px}
+.map-road-h{position:absolute;background:rgba(255,255,255,.8);height:10px;border-radius:5px}
+.map-road-v{position:absolute;background:rgba(255,255,255,.8);width:10px;border-radius:5px}
+.map-pin{position:absolute;font-size:22px;transform:translate(-50%,-100%);filter:drop-shadow(0 2px 4px rgba(0,0,0,.3));animation:bounce 2s infinite}
+.map-pin-other{position:absolute;font-size:16px;transform:translate(-50%,-100%);opacity:.6}
+@keyframes bounce{0%,100%{transform:translate(-50%,-100%)}50%{transform:translate(-50%,-120%)}}
+.map-label{position:absolute;font-size:10px;font-weight:700;color:#0d1f2d;background:rgba(255,255,255,.9);padding:3px 8px;border-radius:999px;bottom:8px;left:8px}
+.map-zone{position:absolute;border-radius:50%;border:2px dashed rgba(255,183,77,.5);background:rgba(255,183,77,.07)}
 
-  /* ── BOTONES ── */
-  .btn-primary { display: inline-block; background: linear-gradient(135deg,#ffb74d,#ffd180); color: #0d1f2d; font-size: 15px; font-weight: 700; padding: 14px 30px; border-radius: 999px; border: none; cursor: pointer; transition: all .2s; text-decoration: none; }
-  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(255,183,77,.4); }
-  .btn-secondary { display: inline-block; background: transparent; color: #0d1f2d; font-size: 14px; font-weight: 600; padding: 12px 24px; border-radius: 999px; border: 1.5px solid #E8E3DA; cursor: pointer; transition: all .2s; margin-left: 10px; }
-  .btn-secondary:hover { border-color: #ffb74d; color: #ffb74d; }
-  .btn-ghost { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); color: #fff; font-size: 13px; font-weight: 600; padding: 12px 24px; border-radius: 999px; cursor: pointer; border: none; transition: all .2s; }
-  .btn-ghost:hover { background: rgba(255,255,255,.14); }
+/* ── AGENDA ── */
+.cal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.cal-month{font-size:15px;font-weight:800;color:#0d1f2d}
+.cal-nav{background:none;border:1.5px solid #E8E3DA;border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.cal-nav:hover{border-color:#ffb74d;color:#ffb74d}
+.day-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.day-btn{padding:10px 12px;border:1.5px solid #E8E3DA;border-radius:12px;font-size:13px;font-weight:700;background:#fff;cursor:pointer;transition:all .2s;text-align:center;min-width:78px}
+.day-btn:hover,.day-btn.selected{background:linear-gradient(135deg,#ffb74d,#ffd180);border-color:#ffb74d;color:#0d1f2d;transform:translateY(-1px);box-shadow:0 4px 12px rgba(255,183,77,.3)}
+.day-btn .day-name{font-size:10px;font-weight:400;display:block;color:inherit;opacity:.7;margin-bottom:2px}
+.day-btn.busy{background:#fafafa;color:#c0b8ae;cursor:default;opacity:.7}
+.time-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.time-btn{padding:10px 0;border:1.5px solid #E8E3DA;border-radius:10px;font-size:13px;font-weight:700;background:#fff;cursor:pointer;transition:all .2s;text-align:center}
+.time-btn:hover,.time-btn.selected{background:#0d1f2d;border-color:#0d1f2d;color:#fff}
+.time-btn.taken{background:#f5f5f5;color:#c0b8ae;cursor:default;text-decoration:line-through;font-size:12px}
+.time-btn .time-tag{font-size:9px;font-weight:400;display:block;margin-top:2px}
 
-  /* ── MODAL ── */
-  .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 100; align-items: center; justify-content: center; padding: 16px; }
-  .modal-backdrop.open { display: flex; }
-  .modal { background: #fff; border-radius: 20px; padding: 32px 28px; max-width: 420px; width: 100%; position: relative; animation: fadeUp .25s ease; }
-  .modal-title { font-size: 18px; font-weight: 800; color: #0d1f2d; margin-bottom: 6px; }
-  .modal-sub { font-size: 13px; color: #647890; margin-bottom: 20px; line-height: 1.5; }
-  .modal-step { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f0ebe3; }
-  .modal-step:last-child { border-bottom: none; }
-  .modal-step-icon { width: 32px; height: 32px; border-radius: 50%; background: #f7f5f0; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; transition: all .4s; }
-  .modal-step-icon.done { background: #22c55e; }
-  .modal-step-text { font-size: 13px; color: #647890; }
-  .modal-step-text strong { color: #0d1f2d; display: block; font-size: 13px; margin-bottom: 2px; }
-  .progress-bar-wrap { height: 6px; background: #f0ebe3; border-radius: 999px; margin: 18px 0 0; overflow: hidden; }
-  .progress-bar { height: 100%; background: linear-gradient(90deg,#ffb74d,#22c55e); border-radius: 999px; width: 0%; transition: width .4s; }
+/* ── WA SIMULADO ── */
+.wa-phone{background:#0b141a;border-radius:16px;overflow:hidden;max-width:340px;margin:0 auto}
+.wa-status-bar{background:#0b141a;padding:6px 14px;display:flex;justify-content:space-between;align-items:center}
+.wa-status-time{color:#fff;font-size:11px;font-weight:700}
+.wa-status-icons{color:#fff;font-size:11px;display:flex;gap:4px}
+.wa-top{background:#1f2c34;padding:10px 14px;display:flex;align-items:center;gap:10px}
+.wa-back{color:#25d366;font-size:14px;cursor:pointer}
+.wa-avatar-w{width:36px;height:36px;border-radius:50%;background:#25d366;display:flex;align-items:center;justify-content:center;font-size:16px}
+.wa-contact{flex:1}
+.wa-contact-name{color:#fff;font-size:13px;font-weight:700}
+.wa-contact-status{color:#8696a0;font-size:11px}
+.wa-icons{display:flex;gap:14px;color:#8696a0;font-size:14px}
+.wa-body{background:#0b141a;padding:14px;min-height:120px;display:flex;flex-direction:column;gap:8px;background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='60' height='60' fill='%230b141a'/%3E%3C/svg%3E")}
+.wa-msg-bubble{background:#1f2c34;border-radius:4px 10px 10px 10px;padding:10px 12px;max-width:85%;font-size:13px;color:#e9edef;line-height:1.55}
+.wa-msg-bubble.sent{background:#005c4b;align-self:flex-end;border-radius:10px 4px 10px 10px}
+.wa-tick-txt{font-size:10px;color:#8696a0;text-align:right;margin-top:3px}
+.wa-tick-txt.read{color:#53bdeb}
+.wa-bot-typing{display:flex;align-items:center;gap:6px;padding:6px 0}
+.wa-typing-bubble{background:#1f2c34;border-radius:4px 10px 10px 10px;padding:10px 14px}
+.wa-typing-bubble span{display:inline-block;width:7px;height:7px;background:#8696a0;border-radius:50%;animation:blink 1.2s infinite;margin:0 2px}
+.wa-typing-bubble span:nth-child(2){animation-delay:.2s}
+.wa-typing-bubble span:nth-child(3){animation-delay:.4s}
 
-  /* ── CONFIRMACIÓN FINAL ── */
-  .confirm-box { text-align: center; padding: 16px 0 0; }
-  .confirm-box .big-check { font-size: 52px; margin-bottom: 12px; animation: pop .4s ease; }
-  @keyframes pop { from{transform:scale(0)} to{transform:scale(1)} }
-  .confirm-box h3 { font-size: 20px; font-weight: 800; color: #0d1f2d; margin-bottom: 8px; }
-  .confirm-box p { font-size: 13px; color: #647890; line-height: 1.6; }
+/* ── PIPELINE ── */
+.pipeline{display:flex;gap:6px;flex-wrap:wrap}
+.pipe-stage{flex:1;min-width:90px;background:#f7f5f0;border-radius:12px;padding:14px 8px;text-align:center;border:2px solid #E8E3DA;transition:all .3s;cursor:default}
+.pipe-stage:hover{transform:translateY(-2px)}
+.pipe-stage.active-stage{background:#fff8ee;border-color:#ffb74d;box-shadow:0 4px 14px rgba(255,183,77,.15)}
+.pipe-stage .pipe-icon{font-size:22px;margin-bottom:6px}
+.pipe-stage .pipe-name{font-size:10px;font-weight:700;color:#2a2a2a;text-transform:uppercase;letter-spacing:.04em}
+.pipe-stage .pipe-count{font-size:22px;font-weight:900;color:#ffb74d;margin-top:5px;transition:all .3s}
+.pipe-stage .pipe-count.bump{animation:bump .4s ease}
+@keyframes bump{0%{transform:scale(1)}50%{transform:scale(1.4)}100%{transform:scale(1)}}
 
-  /* ── TABS ── */
-  .tabs { display: flex; gap: 4px; background: #f7f5f0; border-radius: 10px; padding: 4px; margin-bottom: 20px; }
-  .tab { flex: 1; padding: 9px 0; text-align: center; font-size: 13px; font-weight: 600; color: #8a8070; border-radius: 8px; cursor: pointer; transition: all .2s; }
-  .tab.active { background: #fff; color: #0d1f2d; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+/* ── LEAD CARDS ── */
+.lead-item{border-radius:14px;padding:16px;margin-bottom:10px;cursor:pointer;transition:all .2s}
+.lead-item:hover{transform:translateX(3px)}
+.lead-hot{background:#fff8ee;border:1.5px solid #ffcc80}
+.lead-warm{background:#fffbeb;border:1.5px solid #fde68a}
+.lead-cold{background:#eff6ff;border:1.5px solid #bfdbfe}
+.lead-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.lead-name{font-size:15px;font-weight:800;color:#0d1f2d}
+.lead-source{font-size:11px;color:#8a8070;margin-top:2px}
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px}
+.tag-hot{background:#ef4444;color:#fff}
+.tag-warm{background:#f59e0b;color:#fff}
+.tag-cold{background:#3b82f6;color:#fff}
+.lead-row{display:flex;justify-content:space-between;font-size:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.06)}
+.lead-row:last-child{border-bottom:none}
+.lead-lbl{color:#8a8070}
+.lead-val{font-weight:700;color:#0d1f2d}
+.dot-live{width:8px;height:8px;border-radius:50%;background:#22c55e;display:inline-block;margin-right:5px;animation:pulse 1.5s infinite}
 
-  /* ── FOOTER ── */
-  .footer { background: #0d1f2d; text-align: center; padding: 28px 20px; }
-  .footer-brand { font-family: Georgia, serif; font-size: 20px; color: #fff; margin-bottom: 6px; }
-  .footer-brand span { color: #ffb74d; }
-  .footer p { font-size: 12px; color: rgba(255,255,255,.4); margin-top: 6px; }
-  .footer a { color: #ffb74d; text-decoration: none; }
+/* ── TIMELINE ── */
+.tl{position:relative;padding-left:28px}
+.tl::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:#E8E3DA}
+.tl-item{position:relative;padding-bottom:20px}
+.tl-dot{position:absolute;left:-22px;top:2px;width:16px;height:16px;border-radius:50%;border:2px solid #E8E3DA;background:#fff;transition:all .5s;display:flex;align-items:center;justify-content:center;font-size:8px}
+.tl-dot.done{background:#22c55e;border-color:#22c55e;color:#fff;box-shadow:0 0 0 4px rgba(34,197,94,.15)}
+.tl-dot.sending{background:#ffb74d;border-color:#ffb74d;animation:pulse .8s infinite}
+.tl-dot.pending{background:#E8E3DA}
+.tl-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.tl-day{font-size:12px;font-weight:800;color:#0d1f2d}
+.tl-status{font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px}
+.tl-done{background:#dcfce7;color:#15803d}
+.tl-pending{background:#f3f4f6;color:#6b7280}
+.tl-sending{background:#fff3e0;color:#c2410c}
+.tl-msg{font-size:12px;color:#647890;line-height:1.55;background:#f7f5f0;border-radius:8px;padding:8px 10px;font-style:italic;position:relative}
+.tl-msg::before{content:'\"'}
+.tl-msg::after{content:'\"'}
 
-  /* ── NOTIF ── */
-  .notif { position: fixed; bottom: 24px; right: 24px; background: #0d1f2d; color: #fff; padding: 14px 20px; border-radius: 12px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.35); z-index: 200; transform: translateY(80px); opacity: 0; transition: all .4s; max-width: 300px; }
-  .notif.show { transform: translateY(0); opacity: 1; }
-  .notif-icon { font-size: 18px; flex-shrink: 0; }
+/* ── MODAL ── */
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.modal-backdrop.open{display:flex}
+.modal{background:#fff;border-radius:22px;padding:32px 28px;max-width:420px;width:100%;position:relative;animation:slideUp .3s ease}
+.modal-step{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid #f0ebe3}
+.modal-step:last-child{border-bottom:none}
+.m-icon{width:34px;height:34px;border-radius:50%;background:#f7f5f0;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:all .4s}
+.m-icon.done{background:#22c55e;color:#fff}
+.m-icon.running{background:#ffb74d;animation:pulse .8s infinite}
+.m-text strong{display:block;font-size:13px;font-weight:800;color:#0d1f2d;margin-bottom:2px}
+.m-text span{font-size:12px;color:#8a8070}
+.prog-wrap{height:6px;background:#f0ebe3;border-radius:999px;margin:18px 0 0;overflow:hidden}
+.prog-bar{height:100%;background:linear-gradient(90deg,#ffb74d,#22c55e);border-radius:999px;width:0%;transition:width .5s}
+.confirm-box{text-align:center;padding:10px 0 0}
+.big-check{font-size:56px;margin-bottom:12px;animation:pop .4s ease}
+@keyframes pop{from{transform:scale(0) rotate(-10deg)}to{transform:scale(1) rotate(0)}}
 
-  /* ── WA BUBBLE ── */
-  .wa-bubble { background: #25d366; border-radius: 16px; padding: 20px; margin-top: 16px; position: relative; }
-  .wa-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-  .wa-avatar { width: 36px; height: 36px; background: rgba(255,255,255,.25); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; }
-  .wa-name { font-size: 13px; font-weight: 700; color: #fff; }
-  .wa-sub { font-size: 11px; color: rgba(255,255,255,.7); }
-  .wa-msg { background: rgba(255,255,255,.15); border-radius: 0 10px 10px 10px; padding: 10px 14px; font-size: 13px; color: #fff; line-height: 1.55; }
-  .wa-tick { text-align: right; font-size: 11px; color: rgba(255,255,255,.6); margin-top: 4px; }
+/* ── BOTONES ── */
+.btn-primary{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#ffb74d,#ffd180);color:#0d1f2d;font-size:15px;font-weight:700;padding:14px 30px;border-radius:999px;border:none;cursor:pointer;transition:all .25s;text-decoration:none}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,183,77,.4)}
+.btn-sm{font-size:13px;padding:10px 20px}
 
-  /* ── PANEL AGENTE ── */
-  .agent-panel { background: #f7f5f0; border-radius: 14px; padding: 16px; }
-  .agent-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #e8e3da; font-size: 13px; }
-  .agent-row:last-child { border-bottom: none; }
-  .agent-label { color: #647890; }
-  .agent-val { font-weight: 700; color: #0d1f2d; }
-  .dot-live { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; display: inline-block; margin-right: 5px; animation: pulse 1.5s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+/* ── TOAST ── */
+.notif{position:fixed;bottom:24px;right:24px;background:#0d1f2d;color:#fff;padding:14px 18px;border-radius:14px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:10px;box-shadow:0 8px 28px rgba(0,0,0,.4);z-index:300;transform:translateY(80px);opacity:0;transition:all .4s cubic-bezier(.34,1.56,.64,1);max-width:300px}
+.notif.show{transform:translateY(0);opacity:1}
+.notif-icon{font-size:20px;flex-shrink:0}
 
-  /* ── RESPONSIVE ── */
-  @media(max-width:480px) {
-    .stepper { gap: 0; }
-    .step-lbl { display: none; }
-    .prop-grid { grid-template-columns: 1fr 1fr; }
-  }
+/* ── FOOTER ── */
+.footer{background:#080e14;text-align:center;padding:32px 20px}
+.footer-brand{font-family:Georgia,serif;font-size:20px;color:#fff;margin-bottom:6px}
+.footer-brand span{color:#ffb74d}
+.footer p{font-size:12px;color:rgba(255,255,255,.35);margin-top:5px}
+.footer a{color:#ffb74d;text-decoration:none}
+
+@media(max-width:480px){
+  .step-lbl{display:none}
+  .prop-grid{grid-template-columns:1fr 1fr}
+  .time-grid{grid-template-columns:repeat(3,1fr)}
+  .tabs .tab{font-size:10px}
+}
 </style>
 </head>
 <body>
 
+<!-- LIVE BAR -->
+<div class="live-bar">
+  <div class="live-item"><span class="dot-live"></span>Sistema activo</div>
+  <div class="live-item">Leads hoy: <span class="live-val" id="liveLeads">7</span></div>
+  <div class="live-item">Visitas agendadas: <span class="live-val" id="liveVisitas">3</span></div>
+  <div class="live-item">Resp. media: <span class="live-val">&lt;90seg</span></div>
+  <div class="live-item">Últ. lead: <span class="live-val" id="liveUlt">hace 4 min</span></div>
+</div>
+
 <!-- HERO -->
 <div class="hero">
   <div class="badge">🏡 Demo interactiva · Emporium IA</div>
-  <h1>El sistema que convierte<br>leads en <span>visitas cerradas</span></h1>
-  <p>Prueba cómo funciona el agente IA para inmobiliarias: desde el primer contacto hasta la visita agendada y el seguimiento automático.</p>
+  <h1>De lead a visita cerrada<br>en <span>menos de 2 minutos</span></h1>
+  <p>Interactúa con el sistema tal como lo haría un comprador real. Captación, cualificación, agenda automática y seguimiento post-visita.</p>
   <div class="kpi-row">
-    <div class="kpi"><span class="kpi-val">24/7</span><span class="kpi-lbl">Captación activa</span></div>
-    <div class="kpi"><span class="kpi-val">&lt;2'</span><span class="kpi-lbl">Primera respuesta</span></div>
-    <div class="kpi"><span class="kpi-val">3x</span><span class="kpi-lbl">Leads cualificados</span></div>
-    <div class="kpi"><span class="kpi-val">15d</span><span class="kpi-lbl">Seguimiento auto</span></div>
+    <div class="kpi"><span class="kpi-val" id="kv1">0</span><span class="kpi-lbl">Leads captados</span></div>
+    <div class="kpi"><span class="kpi-val">24/7</span><span class="kpi-lbl">Sin horario</span></div>
+    <div class="kpi"><span class="kpi-val">3x</span><span class="kpi-lbl">Más conversión</span></div>
+    <div class="kpi"><span class="kpi-val">0€</span><span class="kpi-lbl">Coste por resp.</span></div>
   </div>
 </div>
 
 <div class="shell">
 
-  <!-- TABS PRINCIPALES -->
+  <!-- TABS -->
   <div class="tabs" id="mainTabs">
-    <div class="tab active" onclick="showTab(0)">💬 Captación</div>
-    <div class="tab" onclick="showTab(1)">📅 Agenda</div>
-    <div class="tab" onclick="showTab(2)">📊 Panel agente</div>
-    <div class="tab" onclick="showTab(3)">🔔 Seguimiento</div>
+    <div class="tab active" onclick="showTab(0)"><span class="tab-icon">💬</span>Chat IA</div>
+    <div class="tab" onclick="showTab(1)"><span class="tab-icon">📅</span>Agenda</div>
+    <div class="tab" onclick="showTab(2)"><span class="tab-icon">📊</span>Panel</div>
+    <div class="tab" onclick="showTab(3)"><span class="tab-icon">🔔</span>Seguimiento</div>
   </div>
 
-  <!-- ═══════════ TAB 0: CAPTACIÓN CHAT ═══════════ -->
+  <!-- ══════════ TAB 0: CHAT ══════════ -->
   <div id="tab0">
-    <div class="section-label">Paso 1 · Captación y cualificación</div>
+    <div class="sec-lbl">Paso 1 · Captación y cualificación IA</div>
 
-    <!-- Stepper -->
     <div class="stepper" id="stepper">
-      <div class="step"><div class="step-dot active" id="sd0">1</div><span class="step-lbl active" id="sl0">Contacto</span></div>
+      <div class="step"><div class="step-dot active" id="sd0">1</div><span class="step-lbl active" id="sl0">Inicio</span></div>
       <div class="step"><div class="step-dot" id="sd1">2</div><span class="step-lbl" id="sl1">Tipo</span></div>
       <div class="step"><div class="step-dot" id="sd2">3</div><span class="step-lbl" id="sl2">Zona</span></div>
-      <div class="step"><div class="step-dot" id="sd3">4</div><span class="step-lbl" id="sl3">Presupuesto</span></div>
+      <div class="step"><div class="step-dot" id="sd3">4</div><span class="step-lbl" id="sl3">Presup.</span></div>
       <div class="step"><div class="step-dot" id="sd4">5</div><span class="step-lbl" id="sl4">Urgencia</span></div>
-      <div class="step"><div class="step-dot" id="sd5">✓</div><span class="step-lbl" id="sl5">Resultado</span></div>
+      <div class="step"><div class="step-dot" id="sd5">✓</div><span class="step-lbl" id="sl5">Perfil</span></div>
     </div>
 
-    <div class="card">
-      <div class="chat-wrap" id="chatWrap"></div>
-      <div id="chipArea" class="chip-row"></div>
-      <div id="chatCTA" style="display:none; margin-top:12px;">
-        <button class="btn-primary" onclick="goToAgenda()">📅 Ver agenda disponible →</button>
+    <div class="chat-shell">
+      <div class="chat-header">
+        <div class="chat-avatar">🏡</div>
+        <div>
+          <div class="chat-name">Asistente IA · Inmobiliaria</div>
+          <div class="chat-status"><span class="dot-live"></span> En línea ahora</div>
+        </div>
+        <div style="margin-left:auto;font-size:11px;color:rgba(255,255,255,.4);background:rgba(255,255,255,.06);padding:4px 10px;border-radius:999px;">🔒 Seguro</div>
+      </div>
+      <div class="chat-msgs" id="chatMsgs"></div>
+      <div class="chat-input-row">
+        <div id="chipArea" class="chip-row"></div>
       </div>
     </div>
 
-    <!-- Inmuebles sugeridos (aparecen tras cualificación) -->
-    <div id="propSection" style="display:none;">
-      <div class="section-label" style="margin-top:20px;">Inmuebles que encajan con tu búsqueda</div>
+    <!-- Score bar -->
+    <div class="score-wrap" id="scoreWrap" style="display:none;">
+      <div class="score-label"><span>Puntuación del lead</span><span id="scoreText">—</span></div>
+      <div class="score-track"><div class="score-fill" id="scoreFill" style="width:0%"></div></div>
+    </div>
+
+    <!-- CTA agenda -->
+    <div id="chatCTA" style="display:none;margin-top:14px;">
+      <button class="btn-primary" onclick="showTab(1)">📅 Ver agenda disponible →</button>
+    </div>
+
+    <!-- Inmuebles -->
+    <div id="propSection" style="display:none;margin-top:24px;">
+      <div class="sec-lbl">Inmuebles que encajan con tu búsqueda</div>
       <div class="prop-grid" id="propGrid"></div>
     </div>
   </div>
 
-  <!-- ═══════════ TAB 1: AGENDA ═══════════ -->
+  <!-- ══════════ TAB 1: AGENDA ══════════ -->
   <div id="tab1" style="display:none;">
-    <div class="section-label">Paso 2 · Agenda tu visita</div>
+    <div class="sec-lbl">Paso 2 · Elige tu visita</div>
     <div class="card">
-      <p style="font-size:14px; color:#647890; margin-bottom:16px;">Selecciona el día y la hora que mejor te venga. Las plazas <span style="text-decoration:line-through; color:#b0a898;">tachadas</span> ya están ocupadas.</p>
-      <p style="font-size:13px; font-weight:700; color:#0d1f2d; margin-bottom:10px;">¿Qué día te viene bien?</p>
-      <div class="day-row" id="dayRow"></div>
-      <div id="timeSection" style="display:none; margin-top:16px;">
-        <p style="font-size:13px; font-weight:700; color:#0d1f2d; margin-bottom:10px;">¿A qué hora?</p>
-        <div class="time-row" id="timeRow"></div>
+
+      <!-- Mapa simulado -->
+      <div class="sec-lbl" style="margin-bottom:8px;">📍 Ubicación del inmueble</div>
+      <div class="map-sim">
+        <div class="map-grid"></div>
+        <div class="map-road-h" style="top:50%;left:0;right:0;transform:translateY(-50%)"></div>
+        <div class="map-road-h" style="top:28%;left:0;right:0"></div>
+        <div class="map-road-v" style="left:35%;top:0;bottom:0"></div>
+        <div class="map-road-v" style="left:65%;top:0;bottom:0"></div>
+        <div class="map-zone" style="width:70px;height:70px;top:50%;left:35%;transform:translate(-50%,-50%)"></div>
+        <div class="map-pin" style="top:50%;left:35%;">📍</div>
+        <div class="map-pin-other" style="top:30%;left:60%;">🏪</div>
+        <div class="map-pin-other" style="top:65%;left:55%;">🏫</div>
+        <div class="map-pin-other" style="top:42%;left:20%;">🚇</div>
+        <div class="map-label">Calle Mayor 12 · Centro</div>
       </div>
-      <div id="bookBtn" style="display:none; margin-top:20px;">
+
+      <div class="cal-header">
+        <div class="cal-month">📅 Mayo 2026</div>
+        <div style="display:flex;gap:6px;">
+          <button class="cal-nav">‹</button>
+          <button class="cal-nav">›</button>
+        </div>
+      </div>
+
+      <p style="font-size:13px;font-weight:700;color:#0d1f2d;margin-bottom:10px;">¿Qué día prefieres?</p>
+      <div class="day-row" id="dayRow"></div>
+
+      <div id="timeSection" style="display:none;margin-top:16px;">
+        <p style="font-size:13px;font-weight:700;color:#0d1f2d;margin-bottom:10px;">¿A qué hora?</p>
+        <p style="font-size:11px;color:#8a8070;margin-bottom:10px;">Los horarios <s>tachados</s> ya están ocupados.</p>
+        <div class="time-grid" id="timeRow"></div>
+      </div>
+
+      <div id="bookBtn" style="display:none;margin-top:20px;">
         <button class="btn-primary" onclick="openModal()">✅ Confirmar visita</button>
       </div>
     </div>
 
-    <!-- WhatsApp simulado -->
+    <!-- WA simulado (aparece tras confirmar) -->
     <div id="waSection" style="display:none;">
-      <div class="section-label" style="margin-top:20px;">📲 WhatsApp enviado automáticamente al agente</div>
-      <div class="card">
-        <div class="wa-bubble">
-          <div class="wa-header">
-            <div class="wa-avatar">🏡</div>
-            <div><div class="wa-name">Emporium IA · Inmobiliaria</div><div class="wa-sub">Notificación automática</div></div>
+      <div class="sec-lbl" style="margin-top:20px;">📲 WhatsApp enviado al lead y al agente</div>
+      <div class="wa-phone">
+        <div class="wa-status-bar">
+          <span class="wa-status-time">09:42</span>
+          <span class="wa-status-icons">▶ 📶 🔋</span>
+        </div>
+        <div class="wa-top">
+          <span class="wa-back">‹</span>
+          <div class="wa-avatar-w">🏡</div>
+          <div class="wa-contact">
+            <div class="wa-contact-name">Inmobiliaria · Asistente IA</div>
+            <div class="wa-contact-status" id="waContactStatus">escribiendo…</div>
           </div>
-          <div class="wa-msg" id="waMsg"></div>
-          <div class="wa-tick">✔✔ Entregado · ahora</div>
+          <div class="wa-icons">📞 ⋮</div>
         </div>
+        <div class="wa-body" id="waBody"></div>
       </div>
     </div>
   </div>
 
-  <!-- ═══════════ TAB 2: PANEL AGENTE ═══════════ -->
+  <!-- ══════════ TAB 2: PANEL AGENTE ══════════ -->
   <div id="tab2" style="display:none;">
-    <div class="section-label">Vista del agente inmobiliario</div>
+    <div class="sec-lbl">Vista en tiempo real del agente</div>
 
-    <!-- Pipeline -->
     <div class="card">
-      <p style="font-size:14px; font-weight:800; color:#0d1f2d; margin-bottom:14px;">Pipeline de leads del día</p>
-      <div class="pipeline" id="pipelineEl">
-        <div class="pipe-stage active-stage"><div class="pipe-icon">📥</div><div class="pipe-name">Nuevos</div><div class="pipe-count" id="pCount0">3</div></div>
-        <div class="pipe-stage"><div class="pipe-icon">🎯</div><div class="pipe-name">Cualificados</div><div class="pipe-count" id="pCount1">2</div></div>
-        <div class="pipe-stage"><div class="pipe-icon">📅</div><div class="pipe-name">Visita ok</div><div class="pipe-count" id="pCount2">1</div></div>
-        <div class="pipe-stage"><div class="pipe-icon">🔥</div><div class="pipe-name">En cierre</div><div class="pipe-count" id="pCount3">1</div></div>
-        <div class="pipe-stage"><div class="pipe-icon">✅</div><div class="pipe-name">Cerrados</div><div class="pipe-count" id="pCount4">0</div></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <p style="font-size:14px;font-weight:800;color:#0d1f2d;">Pipeline hoy</p>
+        <span style="font-size:11px;color:#22c55e;font-weight:700;"><span class="dot-live"></span> Actualizado en vivo</span>
+      </div>
+      <div class="pipeline">
+        <div class="pipe-stage active-stage"><div class="pipe-icon">📥</div><div class="pipe-name">Nuevos</div><div class="pipe-count" id="pCount0">7</div></div>
+        <div class="pipe-stage"><div class="pipe-icon">🎯</div><div class="pipe-name">Cualificados</div><div class="pipe-count" id="pCount1">5</div></div>
+        <div class="pipe-stage"><div class="pipe-icon">📅</div><div class="pipe-name">Visita ok</div><div class="pipe-count" id="pCount2">3</div></div>
+        <div class="pipe-stage"><div class="pipe-icon">🔥</div><div class="pipe-name">En cierre</div><div class="pipe-count" id="pCount3">2</div></div>
+        <div class="pipe-stage"><div class="pipe-icon">✅</div><div class="pipe-name">Cerrados</div><div class="pipe-count" id="pCount4">1</div></div>
       </div>
     </div>
 
-    <!-- Lead Cards -->
-    <div class="section-label" style="margin-top:20px;">Leads cualificados hoy</div>
-    <div class="card lead-card lead-hot">
-      <span class="tag tag-hot">🔥 Caliente</span>
-      <div class="agent-panel">
-        <div class="agent-row"><span class="agent-label">Nombre</span><span class="agent-val">Ana García</span></div>
-        <div class="agent-row"><span class="agent-label">Operación</span><span class="agent-val">Compra · piso 3 hab.</span></div>
-        <div class="agent-row"><span class="agent-label">Zona</span><span class="agent-val">Centro / Ensanche</span></div>
-        <div class="agent-row"><span class="agent-label">Presupuesto</span><span class="agent-val">200.000 – 260.000 €</span></div>
-        <div class="agent-row"><span class="agent-label">Urgencia</span><span class="agent-val">Busca en 1-2 meses</span></div>
-        <div class="agent-row"><span class="agent-label">Fuente</span><span class="agent-val">Idealista · Web</span></div>
-        <div class="agent-row"><span class="agent-label">Estado</span><span class="agent-val"><span class="dot-live"></span>Visita confirmada · Jueves 16</span></div>
+    <div class="sec-lbl" style="margin-top:20px;">Leads cualificados · hoy</div>
+
+    <!-- Lead 1 -->
+    <div class="card lead-item lead-hot">
+      <div class="lead-top">
+        <div>
+          <div class="lead-name">Ana García</div>
+          <div class="lead-source">Idealista · Web propia</div>
+        </div>
+        <span class="tag tag-hot">🔥 Caliente</span>
       </div>
+      <div class="lead-row"><span class="lead-lbl">Operación</span><span class="lead-val">Compra · 3 hab · Centro</span></div>
+      <div class="lead-row"><span class="lead-lbl">Presupuesto</span><span class="lead-val">200.000 – 260.000 €</span></div>
+      <div class="lead-row"><span class="lead-lbl">Urgencia</span><span class="lead-val">1-2 meses</span></div>
+      <div class="lead-row"><span class="lead-lbl">Captado hace</span><span class="lead-val">12 min</span></div>
+      <div class="lead-row"><span class="lead-lbl">Estado</span><span class="lead-val"><span class="dot-live"></span>Visita confirmada · Jue 22</span></div>
     </div>
-    <div class="card lead-card lead-warm" style="margin-top:10px;">
-      <span class="tag tag-warm">☀️ Tibio</span>
-      <div class="agent-panel">
-        <div class="agent-row"><span class="agent-label">Nombre</span><span class="agent-val">Carlos Méndez</span></div>
-        <div class="agent-row"><span class="agent-label">Operación</span><span class="agent-val">Alquiler · piso 2 hab.</span></div>
-        <div class="agent-row"><span class="agent-label">Zona</span><span class="agent-val">Extrarradio / flexible</span></div>
-        <div class="agent-row"><span class="agent-label">Presupuesto</span><span class="agent-val">700 – 850 €/mes</span></div>
-        <div class="agent-row"><span class="agent-label">Urgencia</span><span class="agent-val">3-4 meses</span></div>
-        <div class="agent-row"><span class="agent-label">Estado</span><span class="agent-val">Seguimiento automático D3</span></div>
+
+    <!-- Lead 2 -->
+    <div class="card lead-item lead-warm" style="margin-top:10px;">
+      <div class="lead-top">
+        <div>
+          <div class="lead-name">Carlos Méndez</div>
+          <div class="lead-source">Facebook Ads</div>
+        </div>
+        <span class="tag tag-warm">☀️ Tibio</span>
       </div>
+      <div class="lead-row"><span class="lead-lbl">Operación</span><span class="lead-val">Alquiler · 2 hab · flexible</span></div>
+      <div class="lead-row"><span class="lead-lbl">Presupuesto</span><span class="lead-val">700 – 850 €/mes</span></div>
+      <div class="lead-row"><span class="lead-lbl">Urgencia</span><span class="lead-val">3-4 meses</span></div>
+      <div class="lead-row"><span class="lead-lbl">Estado</span><span class="lead-val">Seguimiento D3 programado</span></div>
     </div>
-    <div class="card lead-card lead-cold" style="margin-top:10px;">
-      <span class="tag tag-cold">❄️ Frío</span>
-      <div class="agent-panel">
-        <div class="agent-row"><span class="agent-label">Nombre</span><span class="agent-val">María López</span></div>
-        <div class="agent-row"><span class="agent-label">Operación</span><span class="agent-val">Compra · busca piso</span></div>
-        <div class="agent-row"><span class="agent-label">Urgencia</span><span class="agent-val">+6 meses</span></div>
-        <div class="agent-row"><span class="agent-label">Estado</span><span class="agent-val">Nurturing automático · D7</span></div>
+
+    <!-- Lead 3 -->
+    <div class="card lead-item lead-cold" style="margin-top:10px;">
+      <div class="lead-top">
+        <div>
+          <div class="lead-name">María López</div>
+          <div class="lead-source">Google Ads</div>
+        </div>
+        <span class="tag tag-cold">❄️ Frío</span>
       </div>
+      <div class="lead-row"><span class="lead-lbl">Urgencia</span><span class="lead-val">+6 meses</span></div>
+      <div class="lead-row"><span class="lead-lbl">Estado</span><span class="lead-val">Nurturing automático · D7</span></div>
     </div>
   </div>
 
-  <!-- ═══════════ TAB 3: SEGUIMIENTO ═══════════ -->
+  <!-- ══════════ TAB 3: SEGUIMIENTO ══════════ -->
   <div id="tab3" style="display:none;">
-    <div class="section-label">Seguimiento automático post-visita</div>
+    <div class="sec-lbl">Seguimiento automático post-visita · 15 días</div>
     <div class="card">
-      <p style="font-size:13px; color:#647890; margin-bottom:20px; line-height:1.6;">El sistema envía mensajes automáticos durante 15 días tras la visita. Sin que el agente tenga que recordar nada.</p>
-      <div class="timeline" id="timelineEl">
+      <p style="font-size:13px;color:#647890;margin-bottom:20px;line-height:1.65;">El sistema gestiona toda la secuencia sin intervención humana. El agente recibe un aviso solo si el lead responde.</p>
+      <div class="tl">
         <div class="tl-item">
-          <div class="tl-dot active" id="td0"></div>
-          <div class="tl-day">D1 · WhatsApp enviado ✅</div>
-          <div class="tl-msg">«Ana, gracias por visitar el piso de Calle Mayor 12. Te adjunto la ficha completa y plano. ¿Tienes alguna duda?»</div>
+          <div class="tl-dot done" id="td0">✓</div>
+          <div class="tl-head"><span class="tl-day">D1 · WhatsApp de agradecimiento</span><span class="tl-status tl-done">Enviado</span></div>
+          <div class="tl-msg">Ana, gracias por visitar el piso de Calle Mayor 12. Te adjunto la ficha completa y plano. ¿Tienes alguna duda?</div>
         </div>
         <div class="tl-item">
-          <div class="tl-dot active" id="td1"></div>
-          <div class="tl-day">D3 · Mensaje de seguimiento ✅</div>
-          <div class="tl-msg">«Hola Ana, ¿has tenido ocasión de pensarlo? Tenemos otra visita mañana sobre este piso, por si quieres confirmar interés.»</div>
+          <div class="tl-dot done" id="td1">✓</div>
+          <div class="tl-head"><span class="tl-day">D3 · Urgencia</span><span class="tl-status tl-done">Enviado</span></div>
+          <div class="tl-msg">Hola Ana, tenemos otra visita mañana sobre este piso. ¿Lo has podido pensar? Puedo reservarte prioridad si confirmas antes de las 18h.</div>
         </div>
         <div class="tl-item">
           <div class="tl-dot pending" id="td2"></div>
-          <div class="tl-day">D7 · Nuevas propiedades similares ⏳</div>
-          <div class="tl-msg">Envío automático de 2-3 pisos similares que hayan entrado en los últimos días.</div>
+          <div class="tl-head"><span class="tl-day">D7 · Nuevas propiedades</span><span class="tl-status tl-pending" id="ts2">Pendiente</span></div>
+          <div class="tl-msg">Ana, han entrado dos pisos esta semana que encajan con lo que buscas. ¿Te mando las fichas?</div>
         </div>
         <div class="tl-item">
           <div class="tl-dot pending" id="td3"></div>
-          <div class="tl-day">D15 · Último contacto ⏳</div>
-          <div class="tl-msg">Si no ha respondido, el lead se archiva automáticamente y el agente recibe un aviso para decidir si mantenerlo activo.</div>
+          <div class="tl-head"><span class="tl-day">D15 · Último contacto</span><span class="tl-status tl-pending" id="ts3">Pendiente</span></div>
+          <div class="tl-msg">Hola Ana, sé que la búsqueda lleva tiempo. Si en algún momento retomas el proceso, estaremos encantados de ayudarte.</div>
         </div>
       </div>
-
-      <button class="btn-primary" style="margin-top:20px;" onclick="activateTimeline()">▶ Simular seguimiento D7 →</button>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:20px;">
+        <button class="btn-primary btn-sm" id="tlBtn" onclick="runTimeline()">▶ Simular D7 →</button>
+      </div>
     </div>
 
-    <!-- Email simulado -->
-    <div class="section-label" style="margin-top:20px;">📩 Email automático D7</div>
-    <div class="card" id="emailCard" style="display:none;">
-      <div style="background:#f7f5f0; border-radius:10px; padding:16px; font-size:13px; line-height:1.7; color:#2a2a2a;">
-        <p style="font-size:12px; color:#8a8070; margin-bottom:8px;"><strong>De:</strong> noreply@emporium-ia.es &nbsp;|&nbsp; <strong>Para:</strong> ana.garcia@email.com</p>
-        <p style="font-size:12px; color:#8a8070; margin-bottom:14px;"><strong>Asunto:</strong> Ana, estas propiedades acaban de entrar al mercado 🏡</p>
-        <p>Hola <strong>Ana</strong>,</p>
-        <p style="margin-top:8px;">Han entrado dos nuevas propiedades que encajan con lo que buscas en el Centro:</p>
-        <ul style="margin:10px 0 10px 18px; color:#3a4f63;">
-          <li>🏠 Piso 3 hab. · Calle Ancha 4 · 245.000€ · Reformado</li>
-          <li>🏠 Piso 3 hab. · Plaza Mayor 8 · 238.000€ · Luminoso</li>
-        </ul>
-        <p>¿Te interesa verlos esta semana? Puedes elegir hueco directamente en el calendario: <a style="color:#ffb74d; font-weight:700;" href="#">Ver disponibilidad →</a></p>
-        <p style="margin-top:10px; font-size:12px; color:#8a8070;">— Equipo de [NOMBRE_AGENCIA] · Automatizado por Emporium IA</p>
+    <!-- Email D7 -->
+    <div id="emailCard" style="display:none;margin-top:14px;">
+      <div class="sec-lbl">📩 Email automático D7 — vista previa</div>
+      <div class="card">
+        <div style="background:#f7f5f0;border-radius:12px;padding:18px;font-size:13px;line-height:1.75;color:#2a2a2a;">
+          <div style="border-bottom:1px solid #E8E3DA;padding-bottom:10px;margin-bottom:12px;font-size:12px;color:#8a8070;">
+            <div><b>De:</b> noreply@[AGENCIA].es &nbsp;·&nbsp; <b>Para:</b> ana.garcia@email.com</div>
+            <div style="margin-top:4px;"><b>Asunto:</b> Ana, estas propiedades acaban de entrar 🏡</div>
+          </div>
+          <p>Hola <b>Ana</b>,</p>
+          <p style="margin-top:8px;">Esta semana han llegado dos pisos que encajan con tu búsqueda en el <b>Centro</b>:</p>
+          <div style="background:#fff;border-radius:10px;border:1px solid #E8E3DA;padding:14px;margin:12px 0;">
+            <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #f0ebe3;">
+              <span style="font-size:28px;">🏠</span>
+              <div><div style="font-weight:800;color:#0d1f2d;">Calle Ancha 4, 2ºA</div><div style="font-size:12px;color:#647890;">3 hab · 98m² · Reformado · 245.000€</div></div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:center;">
+              <span style="font-size:28px;">🏡</span>
+              <div><div style="font-weight:800;color:#0d1f2d;">Plaza Mayor 8, 1ºB</div><div style="font-size:12px;color:#647890;">3 hab · 91m² · Terraza · 238.000€</div></div>
+            </div>
+          </div>
+          <p>¿Quieres verlos? <a href="#" style="color:#ffb74d;font-weight:700;">Elige tu hueco →</a></p>
+          <p style="margin-top:12px;font-size:11px;color:#8a8070;">— [NOMBRE_AGENCIA] · Automatizado por Emporium IA</p>
+        </div>
       </div>
     </div>
   </div>
@@ -369,316 +545,418 @@
 </div><!-- /shell -->
 
 <!-- CTA FINAL -->
-<div style="background: linear-gradient(135deg,#0d1f2d,#163247); padding: 52px 20px; text-align:center;">
-  <p style="font-family:Georgia,serif; font-size:28px; color:#fff; margin-bottom:10px;">¿Lo ponemos en marcha en su agencia?</p>
-  <p style="font-size:14px; color:rgba(255,255,255,.6); max-width:460px; margin:0 auto 28px; line-height:1.65;">20 minutos de llamada son suficientes para ver si tiene sentido para su equipo. Sin permanencia, sin compromiso.</p>
-  <a href="https://wa.me/34604380891?text=Hola%20Jos%C3%A9%2C%20he%20visto%20la%20demo%20de%20inmobiliarias%20y%20quiero%20saber%20m%C3%A1s" class="btn-primary" style="margin-right:10px;">💬 Hablar con José Manuel</a>
-  <a href="mailto:contacto@emporium-ia.es" style="display:inline-block; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16); color:#fff; font-size:14px; font-weight:600; padding:14px 26px; border-radius:999px; text-decoration:none; margin-top:10px;">✉️ Escribir por email</a>
+<div style="background:linear-gradient(160deg,#0d1f2d,#122b40);padding:56px 20px;text-align:center;">
+  <p style="font-family:Georgia,serif;font-size:30px;color:#fff;margin-bottom:10px;line-height:1.15;">¿Lo ponemos en marcha<br>en su agencia?</p>
+  <p style="font-size:14px;color:rgba(255,255,255,.55);max-width:460px;margin:0 auto 28px;line-height:1.7;">20 minutos de llamada para ver si tiene sentido para su equipo. Sin permanencia ni compromiso.</p>
+  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+    <a href="https://wa.me/34604380891?text=Hola%20Jos%C3%A9%2C%20he%20visto%20la%20demo%20de%20inmobiliarias%20y%20quiero%20saber%20m%C3%A1s" class="btn-primary">💬 Hablar con José Manuel</a>
+    <a href="mailto:contacto@emporium-ia.es" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:#fff;font-size:14px;font-weight:600;padding:14px 26px;border-radius:999px;text-decoration:none;transition:all .2s;">✉️ Escribir por email</a>
+  </div>
 </div>
 
 <!-- FOOTER -->
 <div class="footer">
   <div class="footer-brand">Emporium <span>IA</span></div>
   <p>emporium-ia.es · <a href="mailto:contacto@emporium-ia.es">contacto@emporium-ia.es</a> · +34 604 380 891</p>
-  <p style="margin-top:10px; font-size:11px;">Legitimación: interés legítimo. Derechos ante AEPD o <a href="mailto:dpd@emporium-ia.es">dpd@emporium-ia.es</a> · EMPORIUM IA E.S.P.J.</p>
+  <p style="margin-top:8px;font-size:11px;">Legitimación: interés legítimo. Derechos ante AEPD · EMPORIUM IA E.S.P.J. · <a href="mailto:dpd@emporium-ia.es">dpd@emporium-ia.es</a></p>
 </div>
 
-<!-- MODAL CONFIRMACIÓN -->
+<!-- MODAL -->
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal">
     <div id="modalContent">
-      <div class="modal-title">Confirmando su visita…</div>
-      <div class="modal-sub">El sistema está registrando todos los datos automáticamente.</div>
-      <div class="modal-step"><div class="modal-step-icon" id="ms0">⏳</div><div class="modal-step-text"><strong>Validando disponibilidad</strong>Comprobando el calendario del agente</div></div>
-      <div class="modal-step"><div class="modal-step-icon" id="ms1">⏳</div><div class="modal-step-text"><strong>Bloqueando hueco</strong>Reservando la franja horaria</div></div>
-      <div class="modal-step"><div class="modal-step-icon" id="ms2">⏳</div><div class="modal-step-text"><strong>Enviando WhatsApp al lead</strong>Confirmación con dirección y hora</div></div>
-      <div class="modal-step"><div class="modal-step-icon" id="ms3">⏳</div><div class="modal-step-text"><strong>Notificando al agente</strong>Ficha completa del lead por Telegram</div></div>
-      <div class="modal-step"><div class="modal-step-icon" id="ms4">⏳</div><div class="modal-step-text"><strong>Alta en CRM</strong>Expediente creado automáticamente</div></div>
-      <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
+      <p style="font-size:18px;font-weight:800;color:#0d1f2d;margin-bottom:4px;">Confirmando visita…</p>
+      <p style="font-size:13px;color:#8a8070;margin-bottom:18px;">El sistema actúa en paralelo en 5 pasos</p>
+      <div class="modal-step"><div class="m-icon" id="ms0">⏳</div><div class="m-text"><strong>Validando calendario</strong><span>Comprobando disponibilidad del agente</span></div></div>
+      <div class="modal-step"><div class="m-icon" id="ms1">⏳</div><div class="m-text"><strong>Bloqueando hueco</strong><span>Reservando franja horaria</span></div></div>
+      <div class="modal-step"><div class="m-icon" id="ms2">⏳</div><div class="m-text"><strong>WhatsApp al lead</strong><span>Confirmación con dirección y plano</span></div></div>
+      <div class="modal-step"><div class="m-icon" id="ms3">⏳</div><div class="m-text"><strong>Telegram al agente</strong><span>Ficha completa y score del lead</span></div></div>
+      <div class="modal-step"><div class="m-icon" id="ms4">⏳</div><div class="m-text"><strong>Alta en CRM</strong><span>Expediente creado automáticamente</span></div></div>
+      <div class="prog-wrap"><div class="prog-bar" id="progressBar"></div></div>
     </div>
     <div class="confirm-box" id="confirmBox" style="display:none;">
       <div class="big-check">✅</div>
-      <h3>¡Visita confirmada!</h3>
-      <p>Todo registrado sin intervención manual. El lead recibe WhatsApp de confirmación y el agente tiene la ficha lista.</p>
-      <button class="btn-primary" style="margin-top:16px;" onclick="closeModal()">Continuar demo →</button>
+      <p style="font-size:20px;font-weight:800;color:#0d1f2d;margin-bottom:8px;">¡Visita confirmada!</p>
+      <p style="font-size:13px;color:#647890;line-height:1.6;">Todo gestionado en segundos sin intervención manual. Lead notificado por WhatsApp, agente avisado por Telegram.</p>
+      <button class="btn-primary" style="margin-top:18px;" onclick="closeModal()">Continuar demo →</button>
     </div>
   </div>
 </div>
 
-<!-- NOTIF TOAST -->
+<!-- VISOR INMUEBLE -->
+<div class="visor-backdrop" id="visorBackdrop">
+  <div class="visor" id="visorEl">
+    <div class="visor-gallery">
+      <div class="visor-slide vs1 active" id="vsl0">🏢</div>
+      <div class="visor-slide vs2" id="vsl1">🛋️</div>
+      <div class="visor-slide vs3" id="vsl2">🛁</div>
+      <div class="visor-arrows">
+        <button class="visor-arr" onclick="visorNav(-1)">‹</button>
+        <button class="visor-arr" onclick="visorNav(1)">›</button>
+      </div>
+      <div class="visor-nav">
+        <div class="visor-dot active" onclick="visorGo(0)" id="vd0"></div>
+        <div class="visor-dot" onclick="visorGo(1)" id="vd1"></div>
+        <div class="visor-dot" onclick="visorGo(2)" id="vd2"></div>
+      </div>
+      <button class="visor-close" onclick="closeVisor()">✕</button>
+    </div>
+    <div class="visor-body">
+      <div class="visor-price" id="visorPrice">245.000€</div>
+      <div class="visor-title" id="visorTitle">Calle Mayor 12, 3ºB</div>
+      <div class="visor-sub" id="visorSub">Centro · Salamanca</div>
+      <div class="visor-grid">
+        <div class="visor-stat"><div class="visor-stat-lbl">Superficie</div><div class="visor-stat-val" id="vsSup">95 m²</div></div>
+        <div class="visor-stat"><div class="visor-stat-lbl">Habitaciones</div><div class="visor-stat-val" id="vsHab">3 hab.</div></div>
+        <div class="visor-stat"><div class="visor-stat-lbl">Baños</div><div class="visor-stat-val" id="vsBan">2 baños</div></div>
+        <div class="visor-stat"><div class="visor-stat-lbl">Estado</div><div class="visor-stat-val" id="vsEst">Reformado</div></div>
+        <div class="visor-stat"><div class="visor-stat-lbl">Planta</div><div class="visor-stat-val" id="vsPlt">3ª con ascensor</div></div>
+        <div class="visor-stat"><div class="visor-stat-lbl">Extras</div><div class="visor-stat-val" id="vsExt">Garaje + trastero</div></div>
+      </div>
+      <button class="btn-primary" style="width:100%;justify-content:center;" onclick="closeVisor();showTab(1);">📅 Ver agenda para este piso →</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIF -->
 <div class="notif" id="notif"><span class="notif-icon" id="notifIcon">📲</span><span id="notifMsg"></span></div>
 
 <script>
 // ─── STATE ───
-const state = {
-  step: 0,
-  tipo: '', zona: '', presupuesto: '', urgencia: '',
-  selectedDay: null, selectedTime: null,
-  selectedProp: null
-};
+const S = {tipo:'',zona:'',presupuesto:'',urgencia:'',day:null,time:null,prop:null,chatDone:false};
+let chatStep=0,visorSlide=0,tlPhase=0;
 
 // ─── CHAT FLOW ───
-const chatFlow = [
-  {
-    bot: '👋 Hola, soy el asistente de esta inmobiliaria. ¿Qué estás buscando?',
-    chips: ['🏠 Comprar', '🔑 Alquilar', '💰 Vender mi piso'],
-    key: 'tipo'
-  },
-  {
-    bot: '¡Perfecto! ¿En qué zona te gustaría?',
-    chips: ['🏙️ Centro / Ensanche', '🌳 Extrarradio', '📍 Me es flexible'],
-    key: 'zona'
-  },
-  {
-    bot: '¿Cuál es tu presupuesto aproximado?',
-    chips: ['Hasta 150.000€', '150.000 – 250.000€', '+250.000€', 'Hasta 800€/mes'],
-    key: 'presupuesto'
-  },
-  {
-    bot: '¿En cuánto tiempo necesitas hacer el cambio?',
-    chips: ['🔥 1-2 meses', '☀️ 3-4 meses', '❄️ +6 meses'],
-    key: 'urgencia'
-  }
+const flow=[
+  {bot:'👋 ¡Hola! Soy el asistente de esta inmobiliaria. Para encontrarte las mejores opciones, necesito hacerte unas preguntas rápidas. ¿Qué estás buscando?',
+   chips:['🏠 Comprar un piso','🔑 Alquilar','💰 Quiero vender mi piso'],key:'tipo'},
+  {bot:'Entendido. ¿En qué zona te gustaría?',
+   chips:['🏙️ Centro / Ensanche','🌳 Extrarradio / afueras','📍 Me da igual la zona'],key:'zona'},
+  {bot:'¿Cuál sería tu presupuesto máximo?',
+   chips:['Hasta 150.000€','150.000 – 250.000€','250.000 – 350.000€','Hasta 900€/mes'],key:'presupuesto'},
+  {bot:'Una última: ¿en cuánto tiempo necesitas hacer el cambio?',
+   chips:['🔥 En 1-2 meses','☀️ En 3-4 meses','❄️ No hay prisa, +6 meses'],key:'urgencia'}
 ];
 
-let chatStep = 0;
-
-function initChat() {
-  setTimeout(() => addBubble('bot', chatFlow[0].bot), 400);
-  setTimeout(() => showChips(chatFlow[0].chips, chatFlow[0].key), 900);
+function initChat(){
+  setTimeout(()=>addBubble('bot',`<div class="bot-name">Asistente IA</div>${flow[0].bot}`),500);
+  setTimeout(()=>showChips(flow[0].chips,flow[0].key),1100);
 }
 
-function addBubble(type, text) {
-  const wrap = document.getElementById('chatWrap');
-  const b = document.createElement('div');
-  b.className = 'bubble ' + type;
-  b.innerHTML = text;
-  wrap.appendChild(b);
-  wrap.scrollTop = wrap.scrollHeight;
+function addBubble(type,html){
+  const w=document.getElementById('chatMsgs');
+  const b=document.createElement('div');
+  b.className='bubble '+type;
+  b.innerHTML=html;
+  w.appendChild(b);
+  w.scrollTop=w.scrollHeight;
 }
 
-function showTyping(cb, delay = 700) {
-  const wrap = document.getElementById('chatWrap');
-  const t = document.createElement('div');
-  t.className = 'bubble bot typing';
-  t.innerHTML = '<span></span><span></span><span></span>';
-  t.id = 'typing';
-  wrap.appendChild(t);
-  wrap.scrollTop = wrap.scrollHeight;
-  setTimeout(() => { t.remove(); cb(); }, delay);
+function showTyping(cb,delay=900){
+  const w=document.getElementById('chatMsgs');
+  const t=document.createElement('div');
+  t.className='bubble bot typing';t.id='typ';
+  t.innerHTML='<div class="bot-name">Asistente IA</div><span></span><span></span><span></span>';
+  w.appendChild(t);w.scrollTop=w.scrollHeight;
+  setTimeout(()=>{t.remove();cb();},delay);
 }
 
-function showChips(chips, key) {
-  const area = document.getElementById('chipArea');
-  area.innerHTML = '';
-  chips.forEach(c => {
-    const el = document.createElement('div');
-    el.className = 'chip';
-    el.textContent = c;
-    el.onclick = () => selectChip(c, key, chips);
-    area.appendChild(el);
+function showChips(chips,key){
+  const a=document.getElementById('chipArea');
+  a.innerHTML='';
+  chips.forEach(c=>{
+    const el=document.createElement('div');
+    el.className='chip';el.textContent=c;
+    el.onclick=()=>selectChip(c,key);
+    a.appendChild(el);
   });
 }
 
-function selectChip(val, key, chips) {
-  state[key] = val;
-  document.getElementById('chipArea').innerHTML = '';
-  addBubble('user', val);
-  advanceStepper(chatStep + 1);
+function selectChip(val,key){
+  S[key]=val;
+  document.getElementById('chipArea').innerHTML='';
+  addBubble('user',val);
+  advanceStepper(chatStep+1);
   chatStep++;
-
-  if (chatStep < chatFlow.length) {
-    showTyping(() => {
-      addBubble('bot', chatFlow[chatStep].bot);
-      setTimeout(() => showChips(chatFlow[chatStep].chips, chatFlow[chatStep].key), 300);
+  if(chatStep<flow.length){
+    showTyping(()=>{
+      addBubble('bot',`<div class="bot-name">Asistente IA</div>${flow[chatStep].bot}`);
+      setTimeout(()=>showChips(flow[chatStep].chips,flow[chatStep].key),400);
     });
-  } else {
-    showResult();
+  } else showResult();
+}
+
+function advanceStepper(idx){
+  for(let i=0;i<6;i++){
+    const d=document.getElementById('sd'+i),l=document.getElementById('sl'+i);
+    if(!d)continue;
+    d.classList.remove('active','done');
+    l&&l.classList.remove('active','done');
+    if(i<idx){d.classList.add('done');l&&l.classList.add('done');}
+    else if(i===idx){d.classList.add('active');l&&l.classList.add('active');}
   }
 }
 
-function advanceStepper(idx) {
-  for (let i = 0; i < 6; i++) {
-    const dot = document.getElementById('sd' + i);
-    const lbl = document.getElementById('sl' + i);
-    if (!dot) continue;
-    if (i < idx) { dot.classList.add('done'); dot.classList.remove('active'); lbl && lbl.classList.replace('active','done'); }
-    else if (i === idx) { dot.classList.add('active'); dot.classList.remove('done'); lbl && lbl.classList.add('active'); }
-    else { dot.classList.remove('active','done'); lbl && lbl.classList.remove('active','done'); }
-  }
-}
+function showResult(){
+  const urg=S.urgencia;
+  let score=0,scoreColor,scoreLabel;
+  if(urg.includes('1-2')){score=92;scoreColor='#22c55e';scoreLabel='🔥 Caliente · Se pasa al agente ahora';}
+  else if(urg.includes('3-4')){score=61;scoreColor='#f59e0b';scoreLabel='☀️ Tibio · Seguimiento automático 7 días';}
+  else{score=28;scoreColor='#3b82f6';scoreLabel='❄️ Frío · Nurturing automático 30 días';}
 
-function showResult() {
-  const urgency = state.urgencia;
-  let tag = '☀️ Tibio', msg = '';
-  if (urgency.includes('1-2')) tag = '🔥 Caliente — pasará al agente inmediatamente';
-  else if (urgency.includes('+6')) tag = '❄️ Frío — entrará en nurturing automático';
-  else tag = '☀️ Tibio — recibirá seguimiento suave durante 7 días';
-
-  showTyping(() => {
-    addBubble('bot', `¡Perfecto! Con tus datos hemos encontrado <strong>3 propiedades</strong> que encajan. Tu perfil: <strong>${tag}</strong>`);
+  showTyping(()=>{
+    addBubble('bot',`<div class="bot-name">Asistente IA</div>¡Perfecto! He encontrado <strong>3 propiedades</strong> que encajan exactamente con lo que buscas. Te las muestro a continuación. Si alguna te interesa, puedes agendar una visita directamente. 👇`);
     advanceStepper(5);
-    document.getElementById('chatCTA').style.display = 'block';
+    S.chatDone=true;
+
+    // Score bar
+    const sw=document.getElementById('scoreWrap');
+    sw.style.display='block';
+    document.getElementById('scoreText').textContent=scoreLabel;
+    const sf=document.getElementById('scoreFill');
+    sf.style.background=scoreColor;
+    setTimeout(()=>sf.style.width=score+'%',100);
+
+    document.getElementById('chatCTA').style.display='block';
     showProps();
-    toast('📲', 'Notificación enviada al agente con tu perfil');
+    toast('📊',`Lead cualificado · Puntuación: ${score}/100`);
+    incKPI();
     updatePipeline();
-  }, 1000);
+  },1100);
 }
 
-function showProps() {
-  const section = document.getElementById('propSection');
-  const grid = document.getElementById('propGrid');
-  section.style.display = 'block';
-  const props = [
-    { cls: 'p1', icon: '🏢', name: 'Calle Mayor 12, 3ºB', detail: '3 hab · 95m² · Reformado · Ascensor', price: '245.000€', badge: 'badge-hot', blabel: '🔥 Muy visto' },
-    { cls: 'p2', icon: '🏠', name: 'Plaza del Sol 4, 1ºA', detail: '3 hab · 88m² · Terraza · Garaje incluido', price: '228.000€', badge: 'badge-new', blabel: '🆕 Recién entrado' },
-    { cls: 'p3', icon: '🏡', name: 'Calle Ancha 7, 2ºC', detail: '3 hab · 102m² · Patio · Zona tranquila', price: '238.000€', badge: '', blabel: '' }
+function showProps(){
+  const sec=document.getElementById('propSection'),grid=document.getElementById('propGrid');
+  sec.style.display='block';
+  const props=[
+    {thumb:'t1',icon:'🏢',name:'Calle Mayor 12, 3ºB',detail:'Centro · Reformado · Ascensor',sup:'95 m²',hab:'3 hab.',ban:'2',est:'Reformado',plt:'3ª + ascensor',ext:'Garaje + trastero',price:'245.000€',badge:'pbadge-hot',blabel:'🔥 Muy solicitado'},
+    {thumb:'t2',icon:'🏠',name:'Plaza del Sol 4, 1ºA',detail:'Ensanche · Terraza · Garaje',sup:'88 m²',hab:'3 hab.',ban:'2',est:'Muy bueno',plt:'1ª',ext:'Terraza + garaje',price:'228.000€',badge:'pbadge-new',blabel:'🆕 Recién entrado'},
+    {thumb:'t3',icon:'🏡',name:'Calle Ancha 7, 2ºC',detail:'Centro · Patio · Silencioso',sup:'102 m²',han:'3 hab.',ban:'1',est:'A reformar',plt:'2ª sin asc.',ext:'Patio interior',price:'215.000€',badge:'pbadge-exc',blabel:'💰 Precio rebajado'}
   ];
-  grid.innerHTML = props.map((p, i) => `
+  grid.innerHTML=props.map((p,i)=>`
     <div class="prop-card" id="pc${i}" onclick="selectProp(${i})">
-      <div class="prop-img ${p.cls}">${p.icon}</div>
+      <div class="prop-thumb ${p.thumb}">
+        <div class="prop-thumb-inner">${p.icon}</div>
+        <div class="prop-overlay"><div class="prop-price">${p.price}</div></div>
+        <span class="pbadge ${p.badge}">${p.blabel}</span>
+        <div class="prop-selected-mark">✓</div>
+      </div>
       <div class="prop-body">
         <div class="prop-name">${p.name}</div>
         <div class="prop-detail">${p.detail}</div>
-        <div class="prop-price">${p.price}</div>
-        ${p.badge ? `<span class="prop-badge ${p.badge}">${p.blabel}</span>` : ''}
+        <div class="prop-feats">
+          <span class="feat">${p.sup}</span>
+          <span class="feat">${p.hab}</span>
+          <span class="feat">${p.ban} baños</span>
+        </div>
       </div>
+      <button class="prop-cta" onclick="event.stopPropagation();openVisor(${i})">🔍 Ver detalles</button>
     </div>`).join('');
+  window._propData=props;
 }
 
-function selectProp(i) {
-  document.querySelectorAll('.prop-card').forEach(c => c.classList.remove('selected'));
-  document.getElementById('pc' + i).classList.add('selected');
-  state.selectedProp = i;
-  toast('🏡', 'Inmueble guardado en tu perfil');
+function selectProp(i){
+  document.querySelectorAll('.prop-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('pc'+i).classList.add('selected');
+  S.prop=i;
+  toast('🏡','Inmueble guardado en tu perfil');
 }
 
-function goToAgenda() { showTab(1); }
+// ─── VISOR ───
+function openVisor(i){
+  selectProp(i);
+  const p=window._propData[i];
+  document.getElementById('visorPrice').textContent=p.price;
+  document.getElementById('visorTitle').textContent=p.name;
+  document.getElementById('visorSub').textContent=p.detail;
+  document.getElementById('vsSup').textContent=p.sup;
+  document.getElementById('vsHab').textContent=p.hab;
+  document.getElementById('vsBan').textContent=(p.ban||'1')+' baños';
+  document.getElementById('vsEst').textContent=p.est;
+  document.getElementById('vsPlt').textContent=p.plt;
+  document.getElementById('vsExt').textContent=p.ext;
+  visorGo(0);
+  document.getElementById('visorBackdrop').classList.add('open');
+}
+function closeVisor(){document.getElementById('visorBackdrop').classList.remove('open');}
+function visorNav(dir){
+  visorGo((visorSlide+dir+3)%3);
+}
+function visorGo(n){
+  document.querySelectorAll('.visor-slide').forEach((s,i)=>s.classList.toggle('active',i===n));
+  document.querySelectorAll('.visor-dot').forEach((d,i)=>d.classList.toggle('active',i===n));
+  visorSlide=n;
+}
 
 // ─── AGENDA ───
-const days = [
-  { name: 'Lun', date: '19 mayo' },
-  { name: 'Mar', date: '20 mayo' },
-  { name: 'Mié', date: '21 mayo' },
-  { name: 'Jue', date: '22 mayo' },
-  { name: 'Vie', date: '23 mayo' }
-];
-const times = ['10:00', '10:30', '11:00', '11:30', '12:00', '16:00', '16:30', '17:00'];
-const taken = { 0: ['11:00', '16:00'], 1: ['10:00', '10:30'], 2: [], 3: ['10:00'], 4: ['16:00', '16:30'] };
+const days=[{n:'Lun',d:'19 mayo'},{n:'Mar',d:'20 mayo'},{n:'Mié',d:'21 mayo'},{n:'Jue',d:'22 mayo'},{n:'Vie',d:'23 mayo'}];
+const times=['10:00','10:30','11:00','11:30','12:00','16:00','16:30','17:00'];
+const taken={0:['11:00','16:00'],1:['10:00','10:30','12:00'],2:[],3:['10:00','10:30'],4:['16:00','16:30','17:00']};
+const timeLabels={'10:00':'Mañana','10:30':'Mañana','11:00':'Mañana','11:30':'Mañana','12:00':'Mañana','16:00':'Tarde','16:30':'Tarde','17:00':'Tarde'};
 
-function initAgenda() {
-  const dr = document.getElementById('dayRow');
-  dr.innerHTML = days.map((d, i) => `
+function initAgenda(){
+  const dr=document.getElementById('dayRow');
+  dr.innerHTML=days.map((d,i)=>`
     <div class="day-btn" id="db${i}" onclick="selectDay(${i})">
-      <span class="day-name">${d.name}</span>${d.date}
+      <span class="day-name">${d.n}</span>${d.d}
     </div>`).join('');
 }
 
-function selectDay(i) {
-  document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('selected'));
-  document.getElementById('db' + i).classList.add('selected');
-  state.selectedDay = i;
-  state.selectedTime = null;
-  document.getElementById('bookBtn').style.display = 'none';
-  const tr = document.getElementById('timeRow');
-  tr.innerHTML = times.map(t => {
-    const isTaken = (taken[i] || []).includes(t);
-    return `<div class="time-btn${isTaken ? ' taken' : ''}" onclick="${isTaken ? '' : `selectTime('${t}')`}">${t}</div>`;
+function selectDay(i){
+  days.forEach((_,j)=>document.getElementById('db'+j).classList.remove('selected'));
+  document.getElementById('db'+i).classList.add('selected');
+  S.day=i;S.time=null;
+  document.getElementById('bookBtn').style.display='none';
+  const tr=document.getElementById('timeRow');
+  tr.innerHTML=times.map(t=>{
+    const tk=(taken[i]||[]).includes(t);
+    return `<div class="time-btn${tk?' taken':''}" onclick="${tk?'':'selectTime(\''+t+'\')'}">${t}<span class="time-tag">${tk?'Ocupado':timeLabels[t]}</span></div>`;
   }).join('');
-  document.getElementById('timeSection').style.display = 'block';
+  document.getElementById('timeSection').style.display='block';
+  toast('📅',`Disponibilidad para el ${days[i].d} cargada`);
 }
 
-function selectTime(t) {
-  document.querySelectorAll('.time-btn:not(.taken)').forEach(b => b.classList.remove('selected'));
-  event.target.classList.add('selected');
-  state.selectedTime = t;
-  document.getElementById('bookBtn').style.display = 'block';
+function selectTime(t){
+  document.querySelectorAll('.time-btn:not(.taken)').forEach(b=>b.classList.remove('selected'));
+  event.target.closest('.time-btn').classList.add('selected');
+  S.time=t;
+  document.getElementById('bookBtn').style.display='block';
 }
 
-function openModal() {
+function openModal(){
   document.getElementById('modalBackdrop').classList.add('open');
   runModal();
 }
 
-function runModal() {
-  const steps = ['ms0','ms1','ms2','ms3','ms4'];
-  const bar = document.getElementById('progressBar');
-  let i = 0;
-  const iv = setInterval(() => {
-    if (i < steps.length) {
-      document.getElementById(steps[i]).textContent = '✅';
-      document.getElementById(steps[i]).classList.add('done');
-      bar.style.width = ((i + 1) / steps.length * 100) + '%';
-      i++;
-    } else {
+function runModal(){
+  const ids=['ms0','ms1','ms2','ms3','ms4'];
+  const bar=document.getElementById('progressBar');
+  let i=0;
+  ids.forEach(id=>{
+    const el=document.getElementById(id);
+    el.textContent='⏳';el.classList.remove('done','running');
+  });
+  bar.style.width='0%';
+  document.getElementById('modalContent').style.display='block';
+  document.getElementById('confirmBox').style.display='none';
+
+  document.getElementById(ids[0]).classList.add('running');
+  const iv=setInterval(()=>{
+    const el=document.getElementById(ids[i]);
+    el.textContent='✅';el.classList.remove('running');el.classList.add('done');
+    bar.style.width=((i+1)/ids.length*100)+'%';
+    i++;
+    if(i<ids.length) document.getElementById(ids[i]).classList.add('running');
+    else{
       clearInterval(iv);
-      setTimeout(() => {
-        document.getElementById('modalContent').style.display = 'none';
-        document.getElementById('confirmBox').style.display = 'block';
+      setTimeout(()=>{
+        document.getElementById('modalContent').style.display='none';
+        document.getElementById('confirmBox').style.display='block';
         showWA();
         updatePipeline(true);
-      }, 400);
+        incVisita();
+      },400);
     }
-  }, 600);
+  },650);
 }
 
-function closeModal() {
-  document.getElementById('modalBackdrop').classList.remove('open');
-}
+function closeModal(){document.getElementById('modalBackdrop').classList.remove('open');}
 
-function showWA() {
-  const d = days[state.selectedDay] || { name: 'Jueves', date: '22 mayo' };
-  const t = state.selectedTime || '11:00';
-  document.getElementById('waMsg').innerHTML = `🏠 *Visita confirmada*\n\nHola Ana, tu visita ha quedado confirmada para el *${d.name} ${d.date} a las ${t}*.\n\nDirección: Calle Mayor 12, 3ºB\nAgente: Carmen Rodríguez\nTel: +34 604 380 891\n\n¿Necesitas indicaciones? Responde a este mensaje 👇`;
-  document.getElementById('waSection').style.display = 'block';
-  toast('✅', 'Visita confirmada y WhatsApp enviado');
+function showWA(){
+  const d=days[S.day]||{n:'Jueves',d:'22 mayo'};
+  const t=S.time||'11:00';
+  const ws=document.getElementById('waSection');
+  ws.style.display='block';
+  const body=document.getElementById('waBody');
+  body.innerHTML='';
+  const msgs=[
+    {side:'recv',text:`🏠 *Visita confirmada*\n\nHola, tu visita al piso de Calle Mayor 12, 3ºB ha quedado confirmada para el *${d.n} ${d.d} a las ${t}*.\n\nDirección completa y plano adjunto.`,delay:200},
+    {side:'recv',text:`👤 Tu agente: Carmen Rodríguez\n📞 +34 604 380 891`,delay:1400},
+    {side:'send',text:'Perfecto, muchas gracias 🙌',delay:2800}
+  ];
+  msgs.forEach(m=>{
+    setTimeout(()=>{
+      const b=document.createElement('div');
+      b.className='wa-msg-bubble'+(m.side==='send'?' sent':'');
+      b.innerHTML=m.text.replace(/\n/g,'<br>');
+      const tick=document.createElement('div');
+      tick.className='wa-tick-txt'+(m.side==='send'?' read':'');
+      tick.textContent=m.side==='send'?'✔✔ Leído · '+t:''+t;
+      b.appendChild(tick);
+      body.appendChild(b);
+    },m.delay);
+  });
+  setTimeout(()=>{document.getElementById('waContactStatus').textContent='En línea ahora';},600);
+  toast('✅','WhatsApp y Telegram enviados automáticamente');
 }
 
 // ─── PIPELINE ───
-let pipeCounts = [3, 2, 1, 1, 0];
-function updatePipeline(confirm = false) {
-  if (confirm) {
-    pipeCounts[0] = Math.max(0, pipeCounts[0] - 1);
-    pipeCounts[2]++;
-  } else {
-    pipeCounts[0]++;
-    pipeCounts[1]++;
-  }
-  for (let i = 0; i < 5; i++) {
-    const el = document.getElementById('pCount' + i);
-    if (el) el.textContent = pipeCounts[i];
+let pipe=[7,5,3,2,1];
+function updatePipeline(confirm=false){
+  if(confirm){pipe[1]=Math.max(0,pipe[1]-1);pipe[2]++;}
+  else{pipe[0]++;pipe[1]++;}
+  for(let i=0;i<5;i++){
+    const el=document.getElementById('pCount'+i);
+    if(el){el.textContent=pipe[i];el.classList.add('bump');setTimeout(()=>el.classList.remove('bump'),400);}
   }
 }
 
 // ─── TIMELINE ───
-function activateTimeline() {
-  document.getElementById('td2').classList.replace('pending', 'active');
-  document.getElementById('emailCard').style.display = 'block';
-  toast('📩', 'Email D7 enviado automáticamente a Ana');
-  event.target.textContent = '▶ Simular D15 →';
-  event.target.onclick = activateD15;
-}
-function activateD15() {
-  document.getElementById('td3').classList.replace('pending', 'active');
-  toast('🗂️', 'Lead archivado automáticamente — agente notificado');
-  event.target.style.display = 'none';
+function runTimeline(){
+  const btn=document.getElementById('tlBtn');
+  if(tlPhase===0){
+    document.getElementById('td2').classList.remove('pending');document.getElementById('td2').classList.add('sending');
+    document.getElementById('ts2').textContent='Enviando…';document.getElementById('ts2').className='tl-status tl-sending';
+    setTimeout(()=>{
+      document.getElementById('td2').classList.remove('sending');document.getElementById('td2').classList.add('done');document.getElementById('td2').textContent='✓';
+      document.getElementById('ts2').textContent='Enviado';document.getElementById('ts2').className='tl-status tl-done';
+      document.getElementById('emailCard').style.display='block';
+      toast('📩','Email D7 enviado automáticamente a Ana');
+    },1200);
+    btn.textContent='▶ Simular D15 →';tlPhase=1;
+  } else if(tlPhase===1){
+    document.getElementById('td3').classList.remove('pending');document.getElementById('td3').classList.add('sending');
+    document.getElementById('ts3').textContent='Enviando…';document.getElementById('ts3').className='tl-status tl-sending';
+    setTimeout(()=>{
+      document.getElementById('td3').classList.remove('sending');document.getElementById('td3').classList.add('done');document.getElementById('td3').textContent='✓';
+      document.getElementById('ts3').textContent='Enviado';document.getElementById('ts3').className='tl-status tl-done';
+      toast('🗂️','Secuencia completada · Lead archivado · Agente notificado');
+      btn.style.display='none';
+    },1200);
+    tlPhase=2;
+  }
 }
 
 // ─── TABS ───
-function showTab(n) {
-  [0,1,2,3].forEach(i => {
-    document.getElementById('tab' + i).style.display = i === n ? 'block' : 'none';
-    document.querySelectorAll('.tab')[i].classList.toggle('active', i === n);
+function showTab(n){
+  [0,1,2,3].forEach(i=>{
+    document.getElementById('tab'+i).style.display=i===n?'block':'none';
+    document.querySelectorAll('.tab')[i].classList.toggle('active',i===n);
   });
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 
+// ─── KPI CONTADORES ───
+let kpiLeads=0,kpiVisitas=0;
+function incKPI(){kpiLeads++;document.getElementById('kv1').textContent=kpiLeads;document.getElementById('liveLeads').textContent=7+kpiLeads;}
+function incVisita(){kpiVisitas++;document.getElementById('liveVisitas').textContent=3+kpiVisitas;}
+
+// ─── LIVE BAR CLOCK ───
+let ultMin=4;
+setInterval(()=>{
+  ultMin=Math.max(1,ultMin-1);
+  document.getElementById('liveUlt').textContent='hace '+ultMin+' min';
+},30000);
+
 // ─── TOAST ───
-function toast(icon, msg) {
-  const n = document.getElementById('notif');
-  document.getElementById('notifIcon').textContent = icon;
-  document.getElementById('notifMsg').textContent = msg;
+let toastTimer;
+function toast(icon,msg){
+  clearTimeout(toastTimer);
+  const n=document.getElementById('notif');
+  document.getElementById('notifIcon').textContent=icon;
+  document.getElementById('notifMsg').textContent=msg;
   n.classList.add('show');
-  setTimeout(() => n.classList.remove('show'), 3000);
+  toastTimer=setTimeout(()=>n.classList.remove('show'),3200);
 }
 
 // ─── INIT ───
